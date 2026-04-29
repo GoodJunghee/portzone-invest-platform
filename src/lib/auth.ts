@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import { prisma } from "./db";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-only-change-me";
 const COOKIE_NAME = "pz_session";
@@ -31,16 +32,27 @@ export function verifySession(token: string): SessionPayload | null {
   }
 }
 
+/** 쿠키 기반 세션. 탈퇴 회원이면 null 반환. */
 export async function getSession(): Promise<SessionPayload | null> {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
-  return verifySession(token);
+  const payload = verifySession(token);
+  if (!payload) return null;
+
+  // 탈퇴 회원 차단 (DB 조회는 가벼움 — 필요시 캐시 가능)
+  const user = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    select: { deletedAt: true },
+  });
+  if (!user || user.deletedAt) return null;
+  return payload;
 }
 
 export function setSessionCookie(token: string) {
   cookies().set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

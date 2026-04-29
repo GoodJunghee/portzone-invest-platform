@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function SignupForm() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export function SignupForm() {
       email: String(fd.get("email") ?? ""),
       phone: String(fd.get("phone") ?? ""),
       password: String(fd.get("password") ?? ""),
+      referralCode: String(fd.get("referralCode") ?? "").trim() || undefined,
     };
 
     try {
@@ -49,7 +51,7 @@ export function SignupForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <Field label="이름">
-        <input name="name" required className="input" placeholder="홍길동" />
+        <input name="name" required maxLength={40} className="input" placeholder="홍길동" />
       </Field>
       <Field label="이메일">
         <input
@@ -69,14 +71,21 @@ export function SignupForm() {
           pattern="[0-9]{10,11}"
         />
       </Field>
-      <Field label="비밀번호">
+      <Field label="비밀번호 (8자 이상)">
         <input
           name="password"
           type="password"
           required
           minLength={8}
           className="input"
-          placeholder="8자 이상"
+        />
+      </Field>
+      <Field label="추천 코드 (선택)">
+        <input
+          name="referralCode"
+          className="input"
+          maxLength={20}
+          placeholder="가입 시 추천인 코드 입력"
         />
       </Field>
 
@@ -88,8 +97,26 @@ export function SignupForm() {
           className="mt-1"
         />
         <span>
-          <strong>이용약관</strong> 및 <strong>개인정보처리방침</strong>,{" "}
-          <strong>알림톡 수신</strong>에 동의합니다.
+          <Link href="/legal/terms" target="_blank" className="font-semibold underline">
+            이용약관
+          </Link>
+          ,{" "}
+          <Link
+            href="/legal/privacy"
+            target="_blank"
+            className="font-semibold underline"
+          >
+            개인정보처리방침
+          </Link>
+          ,{" "}
+          <Link
+            href="/legal/disclaimer"
+            target="_blank"
+            className="font-semibold underline"
+          >
+            투자 유의사항
+          </Link>{" "}
+          및 <strong>알림톡 수신</strong>에 동의합니다.
         </span>
       </label>
 
@@ -102,6 +129,10 @@ export function SignupForm() {
       <button type="submit" disabled={loading} className="btn-primary w-full">
         {loading ? "가입 중..." : "가입하기"}
       </button>
+
+      <p className="text-center text-xs text-navy-500">
+        가입 후 입력하신 이메일로 인증 링크가 발송됩니다.
+      </p>
     </form>
   );
 }

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Footer() {
   return (
     <footer className="border-t border-navy-100 bg-navy-50">
@@ -16,17 +18,41 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-navy-900">서비스</h4>
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
-              <li>요금제</li>
-              <li>보고서</li>
-              <li>알림톡</li>
+              <li>
+                <Link href="/pricing" className="hover:text-navy-900">
+                  요금제
+                </Link>
+              </li>
+              <li>
+                <Link href="/reports" className="hover:text-navy-900">
+                  보고서
+                </Link>
+              </li>
+              <li>
+                <Link href="/#faq" className="hover:text-navy-900">
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-navy-900">회사</h4>
+            <h4 className="text-sm font-semibold text-navy-900">회사 / 정책</h4>
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
-              <li>이용약관</li>
-              <li>개인정보처리방침</li>
-              <li>고객센터</li>
+              <li>
+                <Link href="/legal/terms" className="hover:text-navy-900">
+                  이용약관
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/privacy" className="hover:text-navy-900">
+                  개인정보처리방침
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/disclaimer" className="hover:text-navy-900">
+                  투자 유의사항
+                </Link>
+              </li>
             </ul>
           </div>
           <div>

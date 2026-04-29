@@ -34,3 +34,6 @@ public/uploads/
 
 # Vercel
 .vercel
+
+.vercel
+.env*.local

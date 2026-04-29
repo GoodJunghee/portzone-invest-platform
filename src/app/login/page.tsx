@@ -19,6 +19,11 @@ export default function LoginPage() {
             <div className="mt-6">
               <LoginForm />
             </div>
+            <div className="mt-4 text-right text-xs">
+              <Link href="/forgot-password" className="text-navy-600 hover:underline">
+                비밀번호를 잊으셨나요?
+              </Link>
+            </div>
             <div className="mt-6 text-center text-sm text-navy-600">
               아직 계정이 없으신가요?{" "}
               <Link href="/signup" className="font-semibold text-navy-900 underline">

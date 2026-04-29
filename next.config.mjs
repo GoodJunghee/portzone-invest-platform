@@ -1,10 +1,29 @@
 /** @type {import('next').NextConfig} */
+const securityHeaders = [
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+  },
+];
+
 const nextConfig = {
   reactStrictMode: true,
-  // 빌드 시점에 페이지를 prerender 하지 않도록 모든 페이지를 동적으로 처리.
-  // DB(Prisma)를 사용하는 페이지가 많아 정적 생성이 부적절함.
-  experimental: {
-    // App Router에선 페이지마다 export const dynamic = "force-dynamic" 사용 권장
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
   },
 };
 

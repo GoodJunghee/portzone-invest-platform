@@ -14,6 +14,9 @@ async function main() {
       phone: "01000000000",
       passwordHash: await bcrypt.hash("admin1234", 10),
       role: "ADMIN",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+      referralCode: "ADMIN001",
     },
   });
 
@@ -27,6 +30,9 @@ async function main() {
       phone: "01012345678",
       passwordHash: await bcrypt.hash("user1234", 10),
       role: "USER",
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+      referralCode: "DEMO0001",
     },
   });
 

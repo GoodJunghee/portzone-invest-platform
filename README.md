@@ -3,41 +3,31 @@
 주식·코인 종목 추천 플랫폼
 
 ## 개요
-- **시장**: 코스피 / 코스닥 / 나스닥 / 뉴욕증시 / 바이낸스 / 바이비트 / 업비트 / 빗썸 (8개)
+- **시장**: 코스피 / 코스닥 / 나스닥 / 뉴욕증시 / 바이낸스 / 바이비트 / 업비트 / 빗썸
 - **카테고리**: 단타(1일) · 스윙(3~5일) · 장타(1달~1년) · 올인원
-- **알림**: 카카오 알림톡 (정식 오픈 시 Solapi/NHN Toast 등 연동)
-- **결제**: PG 연동 추후 적용
+- **알림**: 카카오 알림톡 (Solapi 연동 예정)
+- **결제**: 정기결제 (토스페이먼츠 연동 예정)
+- **배포**: GitHub + Vercel + Vercel Postgres / Neon
 
 ## 기술 스택
 - Next.js 14 (App Router) + TypeScript
-- Tailwind CSS — 신뢰감 있는 핀테크 톤 (네이비 + 골드)
-- Prisma + **PostgreSQL** (개발/운영 동일)
+- Tailwind CSS — 신뢰감 있는 핀테크 톤
+- Prisma + PostgreSQL
 - bcryptjs + JWT 쿠키 인증
-- 배포: GitHub Actions (CI) + Vercel (CD) + Vercel Postgres
+- Vercel Blob (보고서 PDF 저장)
+- Resend (트랜잭셔널 이메일)
+- Upstash Redis (rate limit, 옵션)
+- Sentry (에러 모니터링, 옵션)
+- DOMPurify (XSS 방지)
 
-## 배포
-
-처음 배포 시 [`DEPLOYMENT.md`](DEPLOYMENT.md) 참조.
-
-자동 배포 흐름:
-```
-git push origin main → GitHub Actions(CI) → Vercel 자동 배포
-```
-
-## 설치 및 실행 (로컬 개발)
-
-로컬에서 PostgreSQL이 필요합니다. 다음 중 택1:
-- **Docker**: `docker run --name pg -e POSTGRES_PASSWORD=dev -p 5432:5432 -d postgres:16`
-  → `DATABASE_URL="postgresql://postgres:dev@localhost:5432/postgres"`
-- **Vercel Postgres**: `vercel env pull .env.development.local` 로 운영 DB 사용 (주의: 데이터 공유)
-- **Supabase / Neon**: 무료 PostgreSQL 인스턴스 생성 후 연결 문자열 사용
+## 설치 및 실행
 
 ```bash
 cd portzone-invest-platform
 npm install
 cp .env.example .env
-# .env 의 DATABASE_URL 채우기
 
+# DB 초기화 + 시드
 npm run db:push
 npm run db:seed
 
@@ -53,42 +43,56 @@ http://localhost:3000
 | 일반회원 | user@portzone.kr | user1234 |
 
 ## 주요 페이지
+
 | 경로 | 설명 |
 |------|------|
 | `/` | 랜딩페이지 |
-| `/pricing` | 요금제 선택 (실시간 가격 계산) |
-| `/signup` `/login` | 가입/로그인 |
-| `/mypage` | 구독·알림내역·관심종목·보고서 |
+| `/pricing` | 요금제 (실시간 가격 계산) |
+| `/signup` `/login` | 가입 / 로그인 |
+| `/forgot-password` `/reset-password` | 비밀번호 찾기 / 재설정 |
+| `/verify-email` | 이메일 인증 |
+| `/mypage` | 구독 / 알림 / 관심종목 / 보고서 |
+| `/mypage/account` | 계정 설정 (비밀번호 변경, 회원 탈퇴) |
 | `/mypage/preferences` | 알림 수신 설정 |
-| `/checkout/success` | 구독 신청 완료 |
 | `/reports` `/reports/[id]` | 보고서 목록·상세 |
-| `/admin` | 관리자 대시보드 (KPI · 보고서 업로드 · 알림톡) |
+| `/admin` | 관리자 대시보드 |
+| `/legal/terms` `/legal/privacy` `/legal/disclaimer` | 약관 / 개인정보 / 투자 유의사항 |
 
 ## API
 
 ### 인증
-- `POST /api/auth/signup` `POST /api/auth/login` `POST /api/auth/logout`
+- `POST /api/auth/signup` — 가입 + 이메일 인증 토큰 발송
+- `POST /api/auth/login` — 로그인 (rate limit, 탈퇴 회원 차단)
+- `POST /api/auth/logout`
+- `POST /api/auth/verify-email` — 토큰으로 이메일 인증
+- `POST /api/auth/verify-email/resend` — 인증 메일 재발송 (1시간당 3회)
+- `POST /api/auth/forgot-password` — 비밀번호 재설정 메일
+- `POST /api/auth/reset-password` — 비밀번호 재설정
+- `POST /api/auth/change-password` — 로그인 후 비밀번호 변경
+
+### 계정
+- `POST /api/account/delete` — 회원 탈퇴 (soft delete)
 
 ### 구독
-- `POST /api/subscriptions` — 구독 신청 (서버에서 가격 재검증)
-- `GET /api/subscriptions` — 내 구독 목록
-- `DELETE /api/subscriptions/[id]` — 해지
+- `GET POST /api/subscriptions`
+- `DELETE /api/subscriptions/[id]`
 
 ### 관심 종목
-- `GET /api/watchlist` `POST /api/watchlist` `DELETE /api/watchlist/[id]`
+- `GET POST /api/watchlist`
+- `DELETE /api/watchlist/[id]`
 
 ### 알림 설정
-- `GET /api/preferences` `PUT /api/preferences`
+- `GET PUT /api/preferences`
 
 ### 관리자
-- `POST /api/admin/reports/upload` — 보고서 + PDF 업로드
+- `POST /api/admin/reports` — 본문만 업로드 (sanitize 적용)
+- `POST /api/admin/reports/upload` — PDF 포함 업로드 (Vercel Blob)
 - `POST /api/admin/alimtalk/dispatch` — 즉시 발송
-- `POST /api/admin/alimtalk/schedule` — 예약 발송 등록
+- `POST /api/admin/alimtalk/schedule` — 예약 발송
 - `GET /api/admin/alimtalk/schedule` — 예약 목록
 
 ### Cron
-- `GET /api/cron/alimtalk?key={CRON_SECRET}` — 예약된 잡 실행
-  - 외부 cron(Vercel Cron, cron-job.org, GitHub Actions)이 1~5분 단위로 호출
+- `GET /api/cron/alimtalk` — Vercel Cron이 호출 (Bearer / ?key=)
 
 ## 가격 정책
 
@@ -98,7 +102,7 @@ http://localhost:3000
 | 단타 | 월 5,000원 |
 | 스윙 | 월 2,000원 |
 | 장타 | 연 10,000원 (연간 전용) |
-| 올인원 | 단타+스윙+장타 합계 × 0.65 (35% 할인) |
+| 올인원 | 단타+스윙+장타 합계 × 0.65 |
 
 ### 다중선택 할인
 | 시장 개수 | 할인율 |
@@ -109,50 +113,55 @@ http://localhost:3000
 | 8개 (전체) | 20% |
 
 ### 연간 결제
-- 월 요금 × **10** (2개월 무료)
+- 월 요금 × 10 (2개월 무료)
 
-가격 계산 로직: [`src/lib/pricing.ts`](src/lib/pricing.ts) — 서버측 재검증 포함
+## 보안
 
-## 1차 MVP 완료 ✅
-- [x] 랜딩페이지 (Hero / 시장 / 카테고리 / 기능 / FAQ)
-- [x] 실시간 가격 계산 요금제 페이지
-- [x] 회원가입 / 로그인 / 마이페이지
-- [x] 보고서 목록·상세
-- [x] 관리자 대시보드 (회원·보고서·알림톡)
-- [x] 알림톡 즉시 발송 트리거 (DB 큐)
+| 항목 | 적용 위치 |
+|------|----------|
+| Security Headers (HSTS, X-Frame-Options 등) | `next.config.mjs` |
+| Rate Limit (auth/email/api) | `src/lib/rate-limit.ts` |
+| HTML Sanitization (DOMPurify) | `src/lib/sanitize.ts` |
+| 비밀번호 해시 (bcrypt) | `src/lib/auth.ts` |
+| JWT 세션 (HttpOnly + Secure) | `src/lib/auth.ts` |
+| 탈퇴 회원 차단 | `getSession()` |
+| 에러 모니터링 | `src/lib/sentry.ts` |
 
-## 2차 MVP 완료 ✅
-- [x] **가격 견적 라인 표시 개선** — 단가표·다중할인·연간할인 명확하게 분리
-- [x] **구독 신청 플로우** — Pricing → API (서버측 재검증) → 완료 페이지 → 마이페이지
-- [x] **구독 해지** — 마이페이지에서 직접 해지 가능
-- [x] **관심 종목 (Watchlist)** — 사용자가 종목 등록/삭제
-- [x] **보고서 PDF 업로드** — 관리자가 PDF 파일 첨부 (로컬 `public/uploads`, 10MB)
-- [x] **알림톡 예약 발송** — 시각 지정 후 cron 실행
-- [x] **Cron 엔드포인트** — `/api/cron/alimtalk` (CRON_SECRET 보호)
-- [x] **알림 수신 설정** — 채널(알림톡/이메일) 및 시점(장시작/마감/긴급) ON/OFF
-- [x] **관리자 KPI** — MRR, ARR, 신규가입, 활성구독, 발송률
-- [x] **알림 발송 잡 추적** — SCHEDULED → RUNNING → COMPLETED
+## Batch 1 완료 ✅
+- [x] 이메일 인증 (가입 시 토큰 발송, 인증 페이지, 재발송)
+- [x] 비밀번호 찾기·재설정 (포트 토큰 1시간 TTL)
+- [x] 비밀번호 변경 (로그인 상태)
+- [x] 회원 탈퇴 (soft delete, 비밀번호 + DELETE 확인)
+- [x] 보고서 PDF → Vercel Blob 저장
+- [x] 보안 헤더 + Rate Limit + Sanitization
+- [x] Sentry 에러 추적
+- [x] 약관 / 개인정보 / 투자 유의사항 페이지
+- [x] 추천 코드 발급 + 가입 시 입력
+- [x] 가입 폼 약관 링크 + 알림톡 동의
 
-## 다음 단계 (3차 MVP)
-- [ ] PG 연동 (토스페이먼츠 / 포트원 정기결제)
-- [ ] 카카오 알림톡 실 연동 (Solapi)
-- [ ] 알림톡 템플릿 사전 승인 (카카오 비즈메시지 심사)
-- [ ] 관심 종목 → 자동 시그널 발송 매칭
-- [ ] 보고서 검색 / 카테고리 필터 / 페이지네이션
-- [ ] 모바일 최적화 + PWA
-- [ ] 통계 차트 (Recharts) — MRR 추이, DAU
-- [ ] PostgreSQL 마이그레이션
-- [ ] S3/Cloudflare R2 업로드 (현재는 로컬)
+## 다음 (Batch 2 — 비즈니스 로직)
+- [ ] 무료 체험 7일 (Trial)
+- [ ] 환불·일할 계산
+- [ ] 리퍼럴 코드 보상 시스템
+- [ ] 관심 종목 자동 매칭
 
-## 운영 cron 예시 (Vercel Cron)
-`vercel.json`:
-```json
-{
-  "crons": [
-    { "path": "/api/cron/alimtalk?key=YOUR_SECRET", "schedule": "*/5 * * * *" }
-  ]
-}
-```
+## 운영 주의사항
+
+### Vercel Blob (PDF)
+- Vercel Storage → Blob 생성 시 `BLOB_READ_WRITE_TOKEN` 자동 등록
+- 미설정 시 PDF 업로드 라우트가 명시적 에러 반환
+
+### Resend (이메일)
+- 키 미설정 시 콘솔에 출력만 (개발 모드 동작)
+- 운영 시 도메인 인증 후 `EMAIL_FROM` 을 본인 도메인으로 변경
+
+### Upstash Redis (rate limit)
+- 미설정 시 in-memory fallback (단일 인스턴스에선 동작, Vercel 다중 함수 인스턴스에선 분산 안 됨)
+- 운영 시 Upstash 가입해서 환경변수 등록 권장
+
+### Sentry
+- 미설정 시 `console.error` fallback
+- 운영 시 https://sentry.io 가입 → Next.js 프로젝트 생성 → DSN 등록
 
 ## ⚠️ 고지사항
 본 서비스에서 제공하는 종목 추천 및 보고서는 투자 판단의 참고용 정보이며,

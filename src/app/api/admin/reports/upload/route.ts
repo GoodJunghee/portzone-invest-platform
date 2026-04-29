@@ -1,74 +1,82 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { uploadReportPdf } from "@/lib/storage";
+import { sanitizeHtml, sanitizeText } from "@/lib/sanitize";
+import { captureError } from "@/lib/sentry";
+import { apiLimiter, getClientIp } from "@/lib/rate-limit";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "reports");
-const ALLOWED_EXT = [".pdf"];
-const MAX_BYTES = 10 * 1024 * 1024; // 10MB
+const ALLOWED_CATEGORIES = ["DAYTRADE", "SWING", "LONGTERM"] as const;
+const ALLOWED_MARKETS = [
+  "KOSPI", "KOSDAQ", "NASDAQ", "NYSE",
+  "BINANCE", "BYBIT", "UPBIT", "BITHUMB",
+] as const;
 
 export async function POST(req: Request) {
+  // 관리자 권한 + rate limit
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
     return NextResponse.json({ message: "권한 없음" }, { status: 403 });
   }
-
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
-  const title = String(formData.get("title") ?? "");
-  const category = String(formData.get("category") ?? "");
-  const market = String(formData.get("market") ?? "");
-  const summary = String(formData.get("summary") ?? "");
-  const content = String(formData.get("content") ?? "");
-
-  if (!title || !category || !market || !summary || !content) {
-    return NextResponse.json({ message: "필수 항목 누락" }, { status: 400 });
+  const rl = await apiLimiter(session.userId);
+  if (!rl.success) {
+    return NextResponse.json({ message: "요청이 너무 많습니다" }, { status: 429 });
   }
 
-  let fileUrl: string | null = null;
-  let fileName: string | null = null;
-  let fileSize: number | null = null;
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    const title = sanitizeText(String(formData.get("title") ?? ""));
+    const category = String(formData.get("category") ?? "");
+    const market = String(formData.get("market") ?? "");
+    const summary = sanitizeText(String(formData.get("summary") ?? ""));
+    const content = sanitizeHtml(String(formData.get("content") ?? ""));
 
-  if (file && file.size > 0) {
-    const ext = path.extname(file.name).toLowerCase();
-    if (!ALLOWED_EXT.includes(ext)) {
-      return NextResponse.json(
-        { message: "PDF 파일만 업로드 가능합니다" },
-        { status: 400 }
-      );
+    if (!title || !summary || !content) {
+      return NextResponse.json({ message: "필수 항목 누락" }, { status: 400 });
     }
-    if (file.size > MAX_BYTES) {
-      return NextResponse.json(
-        { message: "파일 크기는 10MB 이하" },
-        { status: 400 }
-      );
+    if (!ALLOWED_CATEGORIES.includes(category as never)) {
+      return NextResponse.json({ message: "유효하지 않은 카테고리" }, { status: 400 });
+    }
+    if (!ALLOWED_MARKETS.includes(market as never)) {
+      return NextResponse.json({ message: "유효하지 않은 시장" }, { status: 400 });
     }
 
-    const buf = Buffer.from(await file.arrayBuffer());
-    const safeName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}${ext}`;
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    await writeFile(path.join(UPLOAD_DIR, safeName), buf);
+    // 보고서 먼저 생성 (id 확보)
+    const report = await prisma.report.create({
+      data: { title, category, market, summary, content },
+    });
 
-    fileUrl = `/uploads/reports/${safeName}`;
-    fileName = file.name;
-    fileSize = file.size;
+    // PDF 첨부 시 Blob 업로드 후 보고서에 URL 갱신
+    if (file && file.size > 0) {
+      try {
+        const uploaded = await uploadReportPdf(file, report.id);
+        await prisma.report.update({
+          where: { id: report.id },
+          data: {
+            fileUrl: uploaded.url,
+            fileName: uploaded.fileName,
+            fileSize: uploaded.size,
+          },
+        });
+      } catch (uploadErr) {
+        captureError(uploadErr, { reportId: report.id });
+        return NextResponse.json(
+          {
+            message:
+              uploadErr instanceof Error
+                ? uploadErr.message
+                : "PDF 업로드 실패",
+            reportId: report.id,
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    return NextResponse.json({ ok: true, id: report.id });
+  } catch (err) {
+    captureError(err, { route: "admin/reports/upload", ip: getClientIp(req) });
+    return NextResponse.json({ message: "업로드 처리 실패" }, { status: 500 });
   }
-
-  const r = await prisma.report.create({
-    data: {
-      title,
-      category,
-      market,
-      summary,
-      content,
-      fileUrl,
-      fileName,
-      fileSize,
-    },
-  });
-
-  return NextResponse.json({ ok: true, id: r.id });
 }

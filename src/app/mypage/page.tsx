@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { LogoutButton } from "@/components/LogoutButton";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { WatchlistPanel } from "@/components/WatchlistPanel";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 
 export const metadata = { title: "마이페이지 — 포트존" };
 export const dynamic = "force-dynamic";
@@ -52,6 +53,12 @@ export default async function MyPage() {
             </div>
             <div className="flex gap-2">
               <Link
+                href="/mypage/account"
+                className="btn-secondary !py-2 !px-4"
+              >
+                계정 설정
+              </Link>
+              <Link
                 href="/mypage/preferences"
                 className="btn-secondary !py-2 !px-4"
               >
@@ -60,6 +67,12 @@ export default async function MyPage() {
               <LogoutButton />
             </div>
           </div>
+
+          {!user.emailVerified && (
+            <div className="mt-6">
+              <EmailVerificationBanner email={user.email} />
+            </div>
+          )}
 
           {/* Subscription */}
           <section className="mt-8">
