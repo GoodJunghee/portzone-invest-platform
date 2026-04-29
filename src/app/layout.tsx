@@ -7,6 +7,9 @@ export const metadata: Metadata = {
     "코스피·코스닥·나스닥·뉴욕증시·바이낸스·바이비트·업비트·빗썸의 단타·스윙·장타 추천 종목을 카카오 알림톡으로 받아보세요.",
 };
 
+// 빌드 시 정적 생성을 비활성화 (Prisma DATABASE_URL 미설정 환경에서 빌드 실패 방지)
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: {
