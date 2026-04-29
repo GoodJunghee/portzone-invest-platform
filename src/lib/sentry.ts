@@ -1,36 +1,27 @@
 /**
- * Sentry 초기화 (옵션, NEXT_PUBLIC_SENTRY_DSN 설정 시 활성화)
+ * Sentry 헬퍼
  *
- * Vercel 환경변수에 NEXT_PUBLIC_SENTRY_DSN 등록 시 자동 활성화.
- * 미설정 시 모든 호출은 no-op (에러 발생 안 함).
+ * Sentry SDK 초기화는 Wizard가 만든 다음 파일들이 자동으로 처리:
+ * - sentry.server.config.ts
+ * - sentry.edge.config.ts
+ * - src/instrumentation.ts
+ * - src/instrumentation-client.ts
+ *
+ * 이 파일은 단순히 captureException 호출을 일관된 인터페이스로 노출.
  */
 import * as Sentry from "@sentry/nextjs";
 
-const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN;
-
-let initialized = false;
-
-export function initSentry() {
-  if (initialized || !SENTRY_DSN) return;
-  initialized = true;
-
-  Sentry.init({
-    dsn: SENTRY_DSN,
-    tracesSampleRate: 0.1,
-    enabled: process.env.NODE_ENV === "production",
-    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
-  });
-}
-
-/**
- * 에러 캡처 — Sentry 미설정 시 console.error로 fallback
- */
-export function captureError(error: unknown, context?: Record<string, unknown>) {
-  if (SENTRY_DSN) {
-    Sentry.captureException(error, { extra: context });
-  } else {
+export function captureError(
+  error: unknown,
+  context?: Record<string, unknown>
+) {
+  try {
+    Sentry.captureException(error, context ? { extra: context } : undefined);
+  } catch {
+    // Sentry가 어떤 이유로 실패해도 앱이 죽지 않도록
+  }
+  // 운영 환경에서도 콘솔에 한 줄 남겨 디버깅 편의 확보
+  if (process.env.NODE_ENV !== "production") {
     console.error("[error]", error, context);
   }
 }
-
-initSentry();
