@@ -9,6 +9,7 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { WatchlistPanel } from "@/components/WatchlistPanel";
 
 export const metadata = { title: "마이페이지 — 포트존" };
+export const dynamic = "force-dynamic";
 
 export default async function MyPage() {
   const session = await getSession();

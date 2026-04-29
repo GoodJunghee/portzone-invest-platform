@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { PreferencesForm } from "@/components/PreferencesForm";
 
 export const metadata = { title: "알림 설정 — 포트존" };
+export const dynamic = "force-dynamic";
 
 export default async function PreferencesPage() {
   const session = await getSession();

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { ALL_MARKETS, CATEGORIES } from "@/lib/constants";
 
 export const metadata = { title: "보고서 — 포트존" };
+export const dynamic = "force-dynamic";
 
 export default async function ReportsPage() {
   const reports = await prisma.report.findMany({

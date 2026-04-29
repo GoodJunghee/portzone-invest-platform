@@ -11,6 +11,7 @@ import { formatKRW } from "@/lib/pricing";
 import { getStats } from "@/lib/stats";
 
 export const metadata = { title: "관리자 — 포트존" };
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const session = await getSession();

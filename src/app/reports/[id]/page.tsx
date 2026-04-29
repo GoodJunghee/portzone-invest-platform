@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { ALL_MARKETS, CATEGORIES } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: { id: string };
 }
