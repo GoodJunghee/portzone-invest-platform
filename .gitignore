@@ -1,0 +1,36 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Env
+.env
+.env.local
+.env*.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+prisma/migrations/
+
+# Uploads (운영 시 S3/Cloudflare R2로 이전 예정)
+public/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# Vercel
+.vercel

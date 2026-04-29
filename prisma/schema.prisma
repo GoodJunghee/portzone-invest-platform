@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  phone        String
+  passwordHash String
+  role         String   @default("USER") // USER | ADMIN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+  notifications NotificationLog[]
+  reportAccess  ReportAccess[]
+  watchlist     Watchlist[]
+  notifyPref    NotifyPreference?
+}
+
+model Subscription {
+  id          String   @id @default(cuid())
+  userId      String
+  category    String   // DAYTRADE | SWING | LONGTERM | ALLINONE
+  markets     String   // CSV: "KOSPI,KOSDAQ,UPBIT"
+  billingType String   // MONTHLY | YEARLY
+  priceKrw    Int
+  status      String   @default("PENDING") // PENDING | ACTIVE | CANCELLED | EXPIRED
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // DAYTRADE | SWING | LONGTERM
+  market      String
+  summary     String
+  content     String
+  fileUrl     String?  // PDF 다운로드 경로 (정적 또는 업로드)
+  fileName    String?  // 원본 파일명
+  fileSize    Int?     // 바이트
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  access ReportAccess[]
+}
+
+model ReportAccess {
+  id         String   @id @default(cuid())
+  userId     String
+  reportId   String
+  viewedAt   DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reportId])
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  userId    String
+  channel   String   // ALIMTALK | SMS | EMAIL
+  category  String
+  market    String
+  title     String
+  message   String
+  status    String   @default("QUEUED") // QUEUED | SENT | FAILED
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// 사용자 관심 종목
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  market    String
+  symbol    String   // 종목 코드 (예: 005930, AAPL, BTC)
+  name      String   // 종목명
+  memo      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, market, symbol])
+}
+
+/// 알림 수신 설정
+model NotifyPreference {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  alimtalkEnabled Boolean @default(true)
+  emailEnabled    Boolean @default(true)
+  // 시간대별 ON/OFF (예: 장시작 전, 마감 전, 긴급 시그널)
+  preMarketOpen   Boolean @default(true)
+  preMarketClose  Boolean @default(true)
+  urgentSignal    Boolean @default(true)
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// 알림톡 발송 스케줄 (cron 트리거용)
+model AlimtalkJob {
+  id          String   @id @default(cuid())
+  category    String   // DAYTRADE | SWING | LONGTERM
+  market      String
+  title       String
+  message     String
+  scheduledAt DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED | RUNNING | COMPLETED | FAILED
+  totalCount  Int      @default(0)
+  sentCount   Int      @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+}
