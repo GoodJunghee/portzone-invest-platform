@@ -36,7 +36,7 @@ async function main() {
     },
   });
 
-  // 데모 구독
+  // 데모 구독 (활성 구독 + 데모 쿠폰)
   await prisma.subscription.deleteMany({ where: { userId: demo.id } });
   await prisma.subscription.create({
     data: {
@@ -48,6 +48,20 @@ async function main() {
       status: "ACTIVE",
       startDate: new Date(),
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  // 데모 쿠폰
+  await prisma.coupon.deleteMany({ where: { userId: demo.id } });
+  await prisma.coupon.create({
+    data: {
+      userId: demo.id,
+      code: "WELCOME-DEMO",
+      type: "FREE_MONTH",
+      valueInt: 1,
+      description: "데모 환영 쿠폰 — 1개월 무료",
+      source: "PROMO",
+      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     },
   });
 

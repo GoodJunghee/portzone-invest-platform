@@ -9,7 +9,7 @@ const NOTIF_CATEGORIES = CATEGORIES.filter((c) => c.id !== "ALLINONE");
 export function AlimtalkTriggerForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ count: number } | null>(null);
+  const [result, setResult] = useState<{ count: number; highPriority: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -22,6 +22,7 @@ export function AlimtalkTriggerForm() {
     const body = {
       category: String(fd.get("category") ?? "DAYTRADE"),
       market: String(fd.get("market") ?? "KOSPI"),
+      symbol: String(fd.get("symbol") ?? "").trim() || undefined,
       title: String(fd.get("title") ?? ""),
       message: String(fd.get("message") ?? ""),
     };
@@ -37,7 +38,7 @@ export function AlimtalkTriggerForm() {
       setError(data.message ?? "발송 실패");
       return;
     }
-    setResult({ count: data.count });
+    setResult({ count: data.count, highPriority: data.highPriority ?? 0 });
     (e.target as HTMLFormElement).reset();
     router.refresh();
   }
@@ -65,6 +66,17 @@ export function AlimtalkTriggerForm() {
         </select>
       </label>
       <label className="md:col-span-2">
+        <span className="mb-1.5 block text-sm font-medium text-navy-800">
+          종목 코드 (선택, 입력 시 관심종목 매치 우선 발송)
+        </span>
+        <input
+          name="symbol"
+          className="input"
+          placeholder="예: 005930, AAPL, BTC"
+          maxLength={20}
+        />
+      </label>
+      <label className="md:col-span-2">
         <span className="mb-1.5 block text-sm font-medium text-navy-800">알림 제목</span>
         <input
           name="title"
@@ -86,8 +98,10 @@ export function AlimtalkTriggerForm() {
 
       <div className="md:col-span-2 rounded-xl bg-navy-50 p-4 text-xs text-navy-600">
         해당 카테고리·시장을 구독한 회원에게만 발송됩니다.
-        <br />⚠️ 현재 PG·알림톡 미연동 상태 — 발송 시 DB 로그만 기록되며 실제 카카오톡은
-        전송되지 않습니다.
+        <br />
+        <strong>종목 코드</strong>를 입력하면 관심종목으로 등록한 회원에겐{" "}
+        <strong>HIGH 우선순위</strong>로 표시됩니다.
+        <br />⚠️ 현재 알림톡 미연동 상태 — DB 큐 등록만 됩니다.
       </div>
 
       {error && (
@@ -97,7 +111,10 @@ export function AlimtalkTriggerForm() {
       )}
       {result && (
         <div className="md:col-span-2 rounded-lg bg-mint-500/10 p-3 text-sm text-mint-600">
-          {result.count}명의 회원에게 발송 큐에 등록되었습니다.
+          {result.count}명에게 발송 큐 등록 완료.{" "}
+          {result.highPriority > 0 && (
+            <strong>관심종목 매치 {result.highPriority}건 (HIGH)</strong>
+          )}
         </div>
       )}
 

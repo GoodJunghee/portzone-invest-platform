@@ -19,6 +19,7 @@ model User {
   deletedAt       DateTime?
   referralCode    String?   @unique
   referredById    String?
+  trialUsedAt     DateTime? // trial 1회만 부여
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -31,24 +32,33 @@ model User {
   passwordResets     PasswordResetToken[]
   referredBy         User?               @relation("Referrals", fields: [referredById], references: [id])
   referrals          User[]              @relation("Referrals")
+  coupons            Coupon[]
+  refundRequests     RefundRequest[]
+  rewardsAsReferrer  ReferralReward[]    @relation("AsReferrer")
+  rewardsAsReferred  ReferralReward[]    @relation("AsReferred")
 }
 
 model Subscription {
-  id          String    @id @default(cuid())
-  userId      String
-  category    String    // DAYTRADE | SWING | LONGTERM | ALLINONE
-  markets     String    // CSV: "KOSPI,KOSDAQ,UPBIT"
-  billingType String    // MONTHLY | YEARLY
-  priceKrw    Int
-  status      String    @default("PENDING") // PENDING | TRIAL | ACTIVE | CANCELLED | EXPIRED
-  trialEndsAt DateTime?
-  startDate   DateTime?
-  endDate     DateTime?
-  cancelledAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  userId          String
+  category        String    // DAYTRADE | SWING | LONGTERM | ALLINONE
+  markets         String    // CSV: "KOSPI,KOSDAQ,UPBIT"
+  billingType     String    // MONTHLY | YEARLY | TRIAL
+  priceKrw        Int
+  status          String    @default("PENDING") // PENDING | TRIAL | ACTIVE | CANCELLED | EXPIRED | REFUNDED
+  trialEndsAt     DateTime?
+  startDate       DateTime?
+  endDate         DateTime?
+  cancelledAt     DateTime?
+  refundedAt      DateTime?
+  refundAmountKrw Int?
+  appliedCouponId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refundRequests RefundRequest[]
+  appliedCoupon  Coupon?         @relation(fields: [appliedCouponId], references: [id])
 }
 
 model Report {
@@ -80,16 +90,18 @@ model ReportAccess {
 }
 
 model NotificationLog {
-  id        String    @id @default(cuid())
-  userId    String
-  channel   String    // ALIMTALK | SMS | EMAIL
-  category  String
-  market    String
-  title     String
-  message   String
-  status    String    @default("QUEUED") // QUEUED | SENT | FAILED
-  sentAt    DateTime?
-  createdAt DateTime  @default(now())
+  id            String    @id @default(cuid())
+  userId        String
+  channel       String    // ALIMTALK | SMS | EMAIL
+  category      String
+  market        String
+  title         String
+  message       String
+  status        String    @default("QUEUED") // QUEUED | SENT | FAILED
+  priority      String    @default("NORMAL") // NORMAL | HIGH (관심종목 매치)
+  matchedSymbol String?   // 관심종목 매치 시 종목 코드
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -116,6 +128,7 @@ model NotifyPreference {
   preMarketOpen   Boolean  @default(true)
   preMarketClose  Boolean  @default(true)
   urgentSignal    Boolean  @default(true)
+  watchlistOnly   Boolean  @default(false) // 관심종목 시그널만 받기
   updatedAt       DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -125,6 +138,7 @@ model AlimtalkJob {
   id          String    @id @default(cuid())
   category    String
   market      String
+  symbol      String?   // 추천 종목 코드 (관심종목 매칭용)
   title       String
   message     String
   scheduledAt DateTime
@@ -136,31 +150,86 @@ model AlimtalkJob {
   createdAt   DateTime  @default(now())
 }
 
-/// 이메일 인증 토큰 (가입 시)
 model VerificationToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  token     String   @unique
+  token     String    @unique
   email     String
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
 }
 
-/// 비밀번호 재설정 토큰
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  token     String   @unique
+  token     String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
+}
+
+/// 할인/무료 쿠폰 (리퍼럴 보상, 프로모션 등)
+model Coupon {
+  id            String    @id @default(cuid())
+  userId        String
+  code          String    @unique
+  type          String    // FREE_MONTH | PERCENT | FIXED_AMOUNT
+  valueInt      Int       // FREE_MONTH=개월수, PERCENT=%(0~100), FIXED_AMOUNT=원
+  description   String
+  source        String    @default("PROMO") // PROMO | REFERRAL_REFERRER | REFERRAL_REFERRED
+  status        String    @default("ACTIVE") // ACTIVE | USED | EXPIRED
+  expiresAt     DateTime?
+  usedAt        DateTime?
+  appliedSubId  String?
+  createdAt     DateTime  @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@index([userId, status])
+}
+
+/// 리퍼럴 보상 이벤트 추적
+model ReferralReward {
+  id           String   @id @default(cuid())
+  referrerId   String
+  referredId   String
+  referrerCouponId String?
+  referredCouponId String?
+  status       String   @default("ISSUED") // ISSUED | CONFIRMED (피추천인 첫 결제 시) | REVOKED
+  createdAt    DateTime @default(now())
+
+  referrer User @relation("AsReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("AsReferred", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@unique([referrerId, referredId])
+}
+
+/// 환불 요청
+model RefundRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  subscriptionId String
+  reason        String
+  amountKrw     Int       // 시스템이 계산한 환불 예정 금액
+  status        String    @default("PENDING") // PENDING | APPROVED | REJECTED | REFUNDED
+  reviewedAt    DateTime?
+  reviewedBy    String?   // admin user id
+  reviewNote    String?
+  refundedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
 }

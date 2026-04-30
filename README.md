@@ -127,6 +127,19 @@ http://localhost:3000
 | 탈퇴 회원 차단 | `getSession()` |
 | 에러 모니터링 | `src/lib/sentry.ts` |
 
+## Batch 2 완료 ✅
+- [x] 무료 체험 7일 — 가입 시 자동 부여 (`grantTrialIfEligible`)
+- [x] 환불 일할 계산 — 7일 이내 100%, 이후 잔여일 환불
+- [x] 환불 요청 API + 관리자 승인/거절 페이지
+- [x] 리퍼럴 보상 — 가입 시 양쪽에 1개월 무료 쿠폰 (90일 유효)
+- [x] 추천 코드 자동 적용 (URL `?ref=CODE`)
+- [x] 쿠폰 시스템 — FREE_MONTH / PERCENT / FIXED_AMOUNT
+- [x] 쿠폰 미리보기 + 결제 시 적용
+- [x] 관심 종목 자동 매칭 — `symbol` 입력 시 watchlist 매치자에게 HIGH priority
+- [x] `watchlistOnly` 옵션 — 관심종목만 받는 모드
+- [x] Cron: trial 만료, 쿠폰 만료 (`/api/cron/expire`)
+- [x] 마이페이지 통합 — TrialBanner / CouponList / ReferralStats / RefundButton
+
 ## Batch 1 완료 ✅
 - [x] 이메일 인증 (가입 시 토큰 발송, 인증 페이지, 재발송)
 - [x] 비밀번호 찾기·재설정 (포트 토큰 1시간 TTL)

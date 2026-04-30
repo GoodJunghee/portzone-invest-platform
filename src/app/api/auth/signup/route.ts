@@ -7,6 +7,8 @@ import { generateReferralCode, generateToken } from "@/lib/tokens";
 import { authLimiter, getClientIp } from "@/lib/rate-limit";
 import { captureError } from "@/lib/sentry";
 import { sanitizeText } from "@/lib/sanitize";
+import { grantTrialIfEligible } from "@/lib/trial";
+import { issueReferralRewards } from "@/lib/referral";
 
 const SignupSchema = z.object({
   name: z.string().min(1).max(40),
@@ -16,10 +18,9 @@ const SignupSchema = z.object({
   referralCode: z.string().trim().max(20).optional(),
 });
 
-const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 
 export async function POST(req: Request) {
-  // brute-force 방지
   const rl = await authLimiter(getClientIp(req));
   if (!rl.success) {
     return NextResponse.json(
@@ -48,16 +49,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // 추천인 처리
     let referredById: string | null = null;
     if (referralCode) {
       const referrer = await prisma.user.findUnique({
         where: { referralCode: referralCode.toUpperCase() },
       });
-      if (referrer) referredById = referrer.id;
+      if (referrer && !referrer.deletedAt) {
+        referredById = referrer.id;
+      }
     }
 
-    // 추천 코드 생성 (충돌 시 재시도)
     let myReferralCode = generateReferralCode();
     for (let i = 0; i < 5; i++) {
       const dup = await prisma.user.findUnique({
@@ -78,7 +79,20 @@ export async function POST(req: Request) {
       },
     });
 
-    // 이메일 인증 토큰 생성 + 발송
+    // 7일 무료 체험 자동 부여
+    await grantTrialIfEligible(user.id);
+
+    // 추천인 보상 (양쪽에 1개월 무료 쿠폰)
+    if (referredById) {
+      try {
+        await issueReferralRewards(referredById, user.id);
+      } catch (e) {
+        // 추천 보상 실패해도 가입은 성공시킴
+        captureError(e, { route: "auth/signup/referral", userId: user.id });
+      }
+    }
+
+    // 이메일 인증 토큰 + 발송
     const token = generateToken();
     await prisma.verificationToken.create({
       data: {
@@ -90,7 +104,6 @@ export async function POST(req: Request) {
     });
     await sendVerificationEmail(user.email, user.name, token);
 
-    // 세션 발급 (인증 전이라도 로그인 상태로 둠 — 인증 안 하면 일부 기능 제한)
     const sessionToken = signSession({
       userId: user.id,
       email: user.email,
@@ -102,6 +115,8 @@ export async function POST(req: Request) {
       ok: true,
       role: user.role,
       requiresEmailVerification: true,
+      trialGranted: true,
+      referralApplied: !!referredById,
     });
   } catch (err) {
     captureError(err, { route: "auth/signup" });

@@ -8,6 +8,10 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { WatchlistPanel } from "@/components/WatchlistPanel";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
+import { TrialBanner } from "@/components/TrialBanner";
+import { CouponList } from "@/components/CouponList";
+import { ReferralStats } from "@/components/ReferralStats";
+import { getReferralStats } from "@/lib/referral";
 
 export const metadata = { title: "마이페이지 — 포트존" };
 export const dynamic = "force-dynamic";
@@ -16,28 +20,36 @@ export default async function MyPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const [user, subs, notifs, accessibleReports, watchlist] = await Promise.all([
-    prisma.user.findUnique({ where: { id: session.userId } }),
-    prisma.subscription.findMany({
-      where: { userId: session.userId },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.notificationLog.findMany({
-      where: { userId: session.userId },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-    prisma.report.findMany({
-      orderBy: { publishedAt: "desc" },
-      take: 12,
-    }),
-    prisma.watchlist.findMany({
-      where: { userId: session.userId },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
+  const [user, subs, notifs, accessibleReports, watchlist, coupons, referralStats] =
+    await Promise.all([
+      prisma.user.findUnique({ where: { id: session.userId } }),
+      prisma.subscription.findMany({
+        where: { userId: session.userId },
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      }),
+      prisma.notificationLog.findMany({
+        where: { userId: session.userId },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      prisma.report.findMany({
+        orderBy: { publishedAt: "desc" },
+        take: 12,
+      }),
+      prisma.watchlist.findMany({
+        where: { userId: session.userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.coupon.findMany({
+        where: { userId: session.userId },
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      }),
+      getReferralStats(session.userId),
+    ]);
 
   if (!user) redirect("/login");
+
+  const trialSub = subs.find((s) => s.status === "TRIAL") ?? null;
 
   return (
     <>
@@ -74,6 +86,18 @@ export default async function MyPage() {
             </div>
           )}
 
+          {trialSub && (
+            <div className="mt-6">
+              <TrialBanner
+                trialSub={{
+                  status: trialSub.status,
+                  trialEndsAt: trialSub.trialEndsAt?.toISOString() ?? null,
+                  endDate: trialSub.endDate?.toISOString() ?? null,
+                }}
+              />
+            </div>
+          )}
+
           {/* Subscription */}
           <section className="mt-8">
             <div className="mb-4 flex items-center justify-between">
@@ -84,9 +108,7 @@ export default async function MyPage() {
             </div>
             {subs.length === 0 ? (
               <div className="card text-center">
-                <p className="text-sm text-navy-600">
-                  아직 구독중인 요금제가 없습니다.
-                </p>
+                <p className="text-sm text-navy-600">아직 구독중인 요금제가 없습니다.</p>
                 <Link href="/pricing" className="btn-primary mt-4">
                   요금제 둘러보기
                 </Link>
@@ -100,11 +122,31 @@ export default async function MyPage() {
                       ...s,
                       startDate: s.startDate?.toISOString() ?? null,
                       endDate: s.endDate?.toISOString() ?? null,
+                      trialEndsAt: s.trialEndsAt?.toISOString() ?? null,
                     }}
                   />
                 ))}
               </div>
             )}
+          </section>
+
+          {/* Referral */}
+          <section className="mt-10">
+            <ReferralStats
+              referralCode={user.referralCode}
+              stats={referralStats}
+            />
+          </section>
+
+          {/* Coupons */}
+          <section className="mt-10">
+            <h2 className="mb-4 text-lg font-bold text-navy-900">내 쿠폰</h2>
+            <CouponList
+              items={coupons.map((c) => ({
+                ...c,
+                expiresAt: c.expiresAt?.toISOString() ?? null,
+              }))}
+            />
           </section>
 
           {/* Watchlist */}
@@ -119,9 +161,7 @@ export default async function MyPage() {
 
           {/* Notifications */}
           <section className="mt-10">
-            <h2 className="mb-4 text-lg font-bold text-navy-900">
-              최근 알림 내역
-            </h2>
+            <h2 className="mb-4 text-lg font-bold text-navy-900">최근 알림 내역</h2>
             <div className="card">
               {notifs.length === 0 ? (
                 <p className="text-sm text-navy-500">발송된 알림이 없습니다.</p>
@@ -129,11 +169,20 @@ export default async function MyPage() {
                 <ul className="divide-y divide-navy-100">
                   {notifs.map((n) => (
                     <li key={n.id} className="flex items-start gap-4 py-3">
-                      <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-mint-500"></div>
+                      <div
+                        className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${
+                          n.priority === "HIGH" ? "bg-gold-500" : "bg-mint-500"
+                        }`}
+                      ></div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-navy-900">
+                          <span className="flex items-center gap-2 text-sm font-semibold text-navy-900">
                             {n.title}
+                            {n.priority === "HIGH" && (
+                              <span className="rounded-full bg-gold-500 px-1.5 py-0.5 text-[9px] font-bold text-navy-900">
+                                관심종목
+                              </span>
+                            )}
                           </span>
                           <span className="text-xs text-navy-500">
                             {n.sentAt
@@ -146,6 +195,11 @@ export default async function MyPage() {
                         </div>
                         <div className="mt-1.5 text-[11px] text-navy-500">
                           {n.category} · {n.market}
+                          {n.matchedSymbol && (
+                            <span className="ml-2 text-gold-600">
+                              ↳ {n.matchedSymbol}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </li>
@@ -184,9 +238,7 @@ export default async function MyPage() {
                     <h3 className="mt-3 text-base font-bold text-navy-900 line-clamp-2">
                       {r.title}
                     </h3>
-                    <p className="mt-2 text-xs text-navy-600 line-clamp-2">
-                      {r.summary}
-                    </p>
+                    <p className="mt-2 text-xs text-navy-600 line-clamp-2">{r.summary}</p>
                     <div className="mt-3 text-[11px] text-navy-400">
                       {new Date(r.publishedAt).toLocaleDateString("ko-KR")}
                     </div>

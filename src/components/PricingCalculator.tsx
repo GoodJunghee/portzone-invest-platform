@@ -9,12 +9,23 @@ import { Check, Info } from "lucide-react";
 
 type Category = (typeof CATEGORIES)[number]["id"];
 
+interface CouponPreview {
+  finalPriceKrw: number;
+  discountKrw: number;
+  freeMonths: number;
+  message?: string;
+  ok: boolean;
+}
+
 export function PricingCalculator() {
   const router = useRouter();
   const [category, setCategory] = useState<Category>("DAYTRADE");
   const [billing, setBilling] = useState<BillingType>("MONTHLY");
   const [markets, setMarkets] = useState<MarketId[]>(["KOSPI"]);
   const [submitting, setSubmitting] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponPreview, setCouponPreview] = useState<CouponPreview | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const breakdown = useMemo(
     () => calculatePrice(category, markets, billing),
@@ -30,6 +41,46 @@ export function PricingCalculator() {
   const selectAll = () => setMarkets(ALL_MARKETS.map((m) => m.id) as MarketId[]);
   const clearAll = () => setMarkets([]);
 
+  async function applyCoupon() {
+    if (!couponCode.trim() || breakdown.finalPrice <= 0) return;
+    setCouponLoading(true);
+    const res = await fetch("/api/coupons/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: couponCode.trim(),
+        basePriceKrw: breakdown.finalPrice,
+      }),
+    });
+    const data = await res.json();
+    setCouponLoading(false);
+    if (res.status === 401) {
+      router.push("/login");
+      return;
+    }
+    if (!res.ok) {
+      setCouponPreview({
+        ok: false,
+        message: data.message ?? "쿠폰 적용 실패",
+        finalPriceKrw: breakdown.finalPrice,
+        discountKrw: 0,
+        freeMonths: 0,
+      });
+      return;
+    }
+    setCouponPreview({
+      ok: true,
+      finalPriceKrw: data.finalPriceKrw,
+      discountKrw: data.discountKrw,
+      freeMonths: data.freeMonths,
+    });
+  }
+
+  function clearCoupon() {
+    setCouponCode("");
+    setCouponPreview(null);
+  }
+
   async function onSubscribe() {
     if (breakdown.unavailable || markets.length === 0) return;
     setSubmitting(true);
@@ -41,6 +92,7 @@ export function PricingCalculator() {
         markets,
         billingType: billing,
         priceKrw: breakdown.finalPrice,
+        couponCode: couponPreview?.ok ? couponCode.trim() : undefined,
       }),
     });
     setSubmitting(false);
@@ -49,11 +101,16 @@ export function PricingCalculator() {
       return;
     }
     if (!res.ok) {
-      alert("구독 신청 실패");
+      const data = await res.json().catch(() => ({}));
+      alert(data.message ?? "구독 신청 실패");
       return;
     }
     router.push("/checkout/success");
   }
+
+  const finalAfterCoupon = couponPreview?.ok
+    ? couponPreview.finalPriceKrw
+    : breakdown.finalPrice;
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.4fr,1fr]">
@@ -302,14 +359,60 @@ export function PricingCalculator() {
                 ))}
               </div>
 
-              <div className="my-4 border-t border-dashed border-navy-200" />
+              {/* 쿠폰 입력 */}
+              <div className="my-4 border-t border-dashed border-navy-200 pt-4">
+                <div className="text-xs font-semibold text-navy-700">쿠폰 코드</div>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value);
+                      setCouponPreview(null);
+                    }}
+                    placeholder="REF-XXXXXXXX"
+                    className="input !py-2 text-xs"
+                    maxLength={40}
+                  />
+                  {couponPreview?.ok ? (
+                    <button
+                      onClick={clearCoupon}
+                      className="btn-secondary !py-2 !px-3 text-xs"
+                    >
+                      해제
+                    </button>
+                  ) : (
+                    <button
+                      onClick={applyCoupon}
+                      disabled={!couponCode.trim() || couponLoading}
+                      className="btn-primary !py-2 !px-3 text-xs"
+                    >
+                      {couponLoading ? "확인..." : "적용"}
+                    </button>
+                  )}
+                </div>
+                {couponPreview && !couponPreview.ok && (
+                  <div className="mt-2 text-[11px] text-red-600">
+                    {couponPreview.message}
+                  </div>
+                )}
+                {couponPreview?.ok && (
+                  <div className="mt-2 rounded-lg bg-mint-500/10 p-2 text-[11px] text-mint-600">
+                    ✓ 쿠폰 적용
+                    {couponPreview.discountKrw > 0 &&
+                      ` · -${formatKRW(couponPreview.discountKrw)}`}
+                    {couponPreview.freeMonths > 0 &&
+                      ` · +${couponPreview.freeMonths}개월 무료`}
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-end justify-between">
                 <div>
                   <div className="text-xs text-navy-500">
                     최종 결제 금액 ({billing === "YEARLY" ? "연" : "월"})
                   </div>
                   <div className="mt-1 text-3xl font-black text-navy-900">
-                    {formatKRW(breakdown.finalPrice)}
+                    {formatKRW(finalAfterCoupon)}
                   </div>
                 </div>
                 {billing === "YEARLY" && breakdown.finalMonthly > 0 && (

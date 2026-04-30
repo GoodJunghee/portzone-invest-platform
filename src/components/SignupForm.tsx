@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export function SignupForm() {
+export function SignupForm({
+  initialReferralCode,
+}: {
+  initialReferralCode?: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +90,7 @@ export function SignupForm() {
           className="input"
           maxLength={20}
           placeholder="가입 시 추천인 코드 입력"
+          defaultValue={initialReferralCode ?? ""}
         />
       </Field>
 

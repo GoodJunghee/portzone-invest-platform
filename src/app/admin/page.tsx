@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -18,7 +19,7 @@ export default async function AdminPage() {
   if (!session) redirect("/login");
   if (session.role !== "ADMIN") redirect("/mypage");
 
-  const [stats, users, reports, recentNotifs, jobs] = await Promise.all([
+  const [stats, users, reports, recentNotifs, jobs, pendingRefunds] = await Promise.all([
     getStats(),
     prisma.user.findMany({
       orderBy: { createdAt: "desc" },
@@ -37,6 +38,7 @@ export default async function AdminPage() {
       orderBy: { scheduledAt: "desc" },
       take: 20,
     }),
+    prisma.refundRequest.count({ where: { status: "PENDING" } }),
   ]);
 
   return (
@@ -44,11 +46,24 @@ export default async function AdminPage() {
       <Header />
       <main className="bg-navy-50 py-12">
         <div className="container-narrow">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-navy-900">관리자 대시보드</h1>
-            <span className="rounded-full bg-gold-500 px-2.5 py-1 text-xs font-bold text-navy-900">
-              ADMIN
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-navy-900">관리자 대시보드</h1>
+              <span className="rounded-full bg-gold-500 px-2.5 py-1 text-xs font-bold text-navy-900">
+                ADMIN
+              </span>
+            </div>
+            <Link
+              href="/admin/refunds"
+              className="btn-secondary !py-2 !px-4 text-sm"
+            >
+              환불 관리
+              {pendingRefunds > 0 && (
+                <span className="ml-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                  {pendingRefunds}
+                </span>
+              )}
+            </Link>
           </div>
 
           {/* Revenue KPI */}
