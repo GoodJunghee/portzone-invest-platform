@@ -175,6 +175,29 @@ export function ReportUploadForm() {
         />
       </label>
 
+      <div className="md:col-span-2 grid gap-2 rounded-xl bg-navy-50 p-4 md:grid-cols-2">
+        <label className="flex items-start gap-2 text-sm text-navy-700">
+          <input type="checkbox" name="isPublic" value="true" className="mt-1" />
+          <span>
+            <span className="font-semibold text-navy-900">공개 (비로그인 열람)</span>
+            <br />
+            <span className="text-xs text-navy-500">
+              체크 시 누구나 본문을 볼 수 있는 무료 샘플로 게시됩니다.
+            </span>
+          </span>
+        </label>
+        <label className="flex items-start gap-2 text-sm text-navy-700">
+          <input type="checkbox" name="isSample" value="true" className="mt-1" />
+          <span>
+            <span className="font-semibold text-navy-900">랜딩 노출 샘플</span>
+            <br />
+            <span className="text-xs text-navy-500">
+              랜딩 페이지의 "무료 샘플" 섹션에 노출 (최대 3개).
+            </span>
+          </span>
+        </label>
+      </div>
+
       {error && (
         <div className="md:col-span-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
           {error}

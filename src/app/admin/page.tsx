@@ -93,6 +93,9 @@ export default async function AdminPage() {
               <Link href="/admin/templates" className="btn-secondary !py-2 !px-4 text-sm">
                 템플릿
               </Link>
+              <Link href="/admin/blog" className="btn-secondary !py-2 !px-4 text-sm">
+                블로그
+              </Link>
             </div>
           </div>
 

@@ -31,6 +31,8 @@ export async function POST(req: Request) {
     const market = String(formData.get("market") ?? "");
     const summary = sanitizeText(String(formData.get("summary") ?? ""));
     const content = sanitizeHtml(String(formData.get("content") ?? ""));
+    const isPublic = formData.get("isPublic") === "true";
+    const isSample = formData.get("isSample") === "true";
 
     if (!title || !summary || !content) {
       return NextResponse.json({ message: "필수 항목 누락" }, { status: 400 });
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
 
     // 보고서 먼저 생성 (id 확보)
     const report = await prisma.report.create({
-      data: { title, category, market, summary, content },
+      data: { title, category, market, summary, content, isPublic, isSample },
     });
 
     // PDF 첨부 시 Blob 업로드 후 보고서에 URL 갱신

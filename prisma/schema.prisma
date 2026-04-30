@@ -71,10 +71,14 @@ model Report {
   fileUrl     String?
   fileName    String?
   fileSize    Int?
+  isPublic    Boolean  @default(false) // 비로그인 사용자도 열람 가능 (샘플)
+  isSample    Boolean  @default(false) // 랜딩 페이지에 노출되는 대표 샘플
   publishedAt DateTime @default(now())
   createdAt   DateTime @default(now())
 
   access ReportAccess[]
+
+  @@index([isPublic, isSample])
 }
 
 model ReportAccess {
@@ -225,6 +229,27 @@ model ReportTemplate {
   content     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+/// 블로그/뉴스 포스트 (SEO 콘텐츠)
+model BlogPost {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  excerpt       String    // 목록·OpenGraph용 요약 (최대 200자 권장)
+  content       String    // 본문 HTML
+  coverImageUrl String?
+  category      String    // MARKET_ANALYSIS | STRATEGY | NEWS | GUIDE
+  tags          String?   // CSV
+  authorName    String    @default("PortZone")
+  status        String    @default("DRAFT") // DRAFT | PUBLISHED | ARCHIVED
+  viewCount     Int       @default(0)
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([category])
 }
 
 /// 알림톡 템플릿 라이브러리

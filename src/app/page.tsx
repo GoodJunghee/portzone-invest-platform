@@ -3,10 +3,34 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ALL_MARKETS, CATEGORIES } from "@/lib/constants";
 import { getServerDictionary } from "@/lib/i18n-server";
-import { ArrowRight, Bell, FileText, ShieldCheck, Zap } from "lucide-react";
+import { prisma } from "@/lib/db";
+import { ArrowRight, Bell, FileText, ShieldCheck, Zap, Unlock } from "lucide-react";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
   const { t } = getServerDictionary();
+  const [sampleReports, latestPosts] = await Promise.all([
+    prisma.report.findMany({
+      where: { isPublic: true, isSample: true },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+    }),
+    prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        excerpt: true,
+        category: true,
+        coverImageUrl: true,
+        publishedAt: true,
+      },
+    }),
+  ]);
   return (
     <>
       <Header />
@@ -155,6 +179,105 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Sample reports (free) */}
+        {sampleReports.length > 0 && (
+          <section className="bg-white py-16 md:py-20">
+            <div className="container-narrow">
+              <SectionHeader
+                eyebrow="🎁 무료 샘플"
+                title="가입 없이 미리 보세요"
+                desc="실제 발송되는 보고서 형식과 내용을 무료로 열람할 수 있습니다."
+              />
+              <div className="mt-10 grid gap-4 md:mt-12 md:grid-cols-3">
+                {sampleReports.map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/reports/${r.id}`}
+                    className="card transition hover:-translate-y-1 hover:shadow-card-hover"
+                  >
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="rounded-full bg-navy-900 px-2 py-0.5 text-white">
+                        {r.category}
+                      </span>
+                      <span className="text-navy-500">{r.market}</span>
+                      <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[10px] font-bold text-navy-900">
+                        🎁 무료
+                      </span>
+                    </div>
+                    <h3 className="mt-3 text-base font-bold text-navy-900 line-clamp-2">
+                      {r.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-navy-600 line-clamp-3">
+                      {r.summary}
+                    </p>
+                    <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-navy-900">
+                      <Unlock className="h-3.5 w-3.5" />
+                      바로 읽기
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-8 text-center">
+                <Link href="/reports" className="btn-secondary">
+                  전체 보고서 보기
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Blog (insights) */}
+        {latestPosts.length > 0 && (
+          <section className="bg-navy-50 py-16 md:py-20">
+            <div className="container-narrow">
+              <SectionHeader
+                eyebrow="Insights"
+                title="시장을 읽는 시각"
+                desc="시장 분석·투자 전략·뉴스·가이드를 블로그에서."
+              />
+              <div className="mt-10 grid gap-6 md:mt-12 md:grid-cols-3">
+                {latestPosts.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/blog/${p.slug}`}
+                    className="card transition hover:-translate-y-1 hover:shadow-card-hover"
+                  >
+                    {p.coverImageUrl && (
+                      <div
+                        className="-mx-6 -mt-6 mb-4 h-32 rounded-t-2xl bg-cover bg-center"
+                        style={{ backgroundImage: `url(${p.coverImageUrl})` }}
+                      />
+                    )}
+                    <div className="text-xs">
+                      <span className="rounded-full bg-navy-100 px-2 py-0.5 text-navy-700">
+                        {p.category}
+                      </span>
+                      {p.publishedAt && (
+                        <span className="ml-2 text-navy-500">
+                          {new Date(p.publishedAt).toLocaleDateString("ko-KR")}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="mt-3 text-base font-bold text-navy-900 line-clamp-2">
+                      {p.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-navy-600 line-clamp-3">
+                      {p.excerpt}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-8 text-center">
+                <Link href="/blog" className="btn-secondary">
+                  블로그 전체 보기
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* FAQ */}
         <section id="faq" className="bg-navy-50 py-16 md:py-20">

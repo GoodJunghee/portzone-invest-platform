@@ -80,6 +80,9 @@ export function MobileNav({ locale, t }: { locale: Locale; t: Dictionary }) {
               <NavLink href="/reports" onClose={() => setOpen(false)}>
                 {t.common.reports}
               </NavLink>
+              <NavLink href="/blog" onClose={() => setOpen(false)}>
+                블로그
+              </NavLink>
               <NavLink href="/#faq" onClose={() => setOpen(false)}>
                 {t.common.faq}
               </NavLink>

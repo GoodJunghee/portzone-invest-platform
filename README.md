@@ -127,6 +127,27 @@ http://localhost:3000
 | 탈퇴 회원 차단 | `getSession()` |
 | 에러 모니터링 | `src/lib/sentry.ts` |
 
+## Batch 5 완료 ✅
+- [x] **블로그/뉴스 시스템** — `BlogPost` 모델, `/blog`, `/blog/[slug]`
+  - 카테고리: 시장 분석 / 투자 전략 / 뉴스 / 가이드
+  - 검색·카테고리 필터·페이지네이션
+  - 슬러그 기반 URL + 자동 생성 + 충돌 방지
+  - 관리자 작성/수정/삭제 (`/admin/blog`)
+  - DRAFT / PUBLISHED / ARCHIVED 상태 토글
+  - 조회수 자동 증가
+  - 태그 시스템 (CSV)
+- [x] **무료 샘플 보고서** — `Report.isPublic`, `Report.isSample`
+  - 비로그인 사용자도 isPublic 보고서 본문 열람 가능
+  - 랜딩 페이지에 isSample 보고서 자동 노출 (최대 3개)
+  - 관리자 업로드 폼에 토글 추가
+- [x] **SEO 최적화**
+  - `sitemap.xml` 자동 생성 (정적 + 보고서 + 블로그 포스트 동적 포함)
+  - `robots.txt` (admin/api/mypage 차단)
+  - 블로그 상세 페이지 OpenGraph + Twitter Card 메타
+  - JSON-LD Article schema (구조화된 데이터)
+  - 보고서 상세 페이지 canonical + OpenGraph
+  - 블로그 → 가입 CTA (전환 유도)
+
 ## Batch 4 완료 ✅
 - [x] **PWA** — manifest.json, SVG 아이콘, apple-touch-icon, theme-color 메타
 - [x] **다크모드** — Tailwind class 전략 + globals.css 토큰 오버라이드 + ThemeProvider/Toggle

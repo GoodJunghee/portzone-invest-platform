@@ -18,7 +18,7 @@ export function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm font-medium text-navy-700 md:flex">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-navy-700 lg:flex">
           <Link href="/#features" className="hover:text-navy-900">
             {t.common.about}
           </Link>
@@ -27,6 +27,9 @@ export function Header() {
           </Link>
           <Link href="/reports" className="hover:text-navy-900">
             {t.common.reports}
+          </Link>
+          <Link href="/blog" className="hover:text-navy-900">
+            블로그
           </Link>
           <Link href="/#faq" className="hover:text-navy-900">
             {t.common.faq}
