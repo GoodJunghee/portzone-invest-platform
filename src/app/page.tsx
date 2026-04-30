@@ -8,6 +8,32 @@ import { ArrowRight, Bell, FileText, ShieldCheck, Zap, Unlock } from "lucide-rea
 
 export const dynamic = "force-dynamic";
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  "https://portzone-invest-platform.vercel.app";
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "PortZone",
+  url: baseUrl,
+  logo: `${baseUrl}/icons/icon-512.svg`,
+  description:
+    "주식·코인 종목 추천 플랫폼. 8개 시장의 단타·스윙·장타 시그널을 카카오 알림톡으로.",
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "PortZone",
+  url: baseUrl,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${baseUrl}/blog?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default async function HomePage() {
   const { t } = getServerDictionary();
   const [sampleReports, latestPosts] = await Promise.all([
@@ -308,6 +334,22 @@ export default async function HomePage() {
                 q="구독 해지는 언제든 가능한가요?"
                 a="네, 마이페이지에서 언제든지 해지할 수 있습니다. 해지 시 다음 결제일부터 자동결제가 중단됩니다."
               />
+              <FaqItem
+                q="무료 체험은 어떻게 시작하나요?"
+                a="가입 즉시 자동으로 7일 무료 체험이 부여됩니다. 결제 정보 없이도 모든 시장의 단타 시그널을 받아보실 수 있습니다."
+              />
+              <FaqItem
+                q="환불은 어떻게 받나요?"
+                a="결제 후 7일 이내 100% 환불, 이후엔 사용한 일수만큼 일할 차감 후 잔여일에 비례한 금액이 환불됩니다. 마이페이지의 환불 요청 버튼으로 신청하세요."
+              />
+            </div>
+            <div className="mt-8 text-center">
+              <Link
+                href="/faq"
+                className="text-sm font-semibold text-navy-900 underline hover:text-gold-600"
+              >
+                더 많은 질문 보기 →
+              </Link>
             </div>
           </div>
         </section>
@@ -335,6 +377,16 @@ export default async function HomePage() {
         </section>
       </main>
       <Footer />
+
+      {/* SEO: structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
     </>
   );
 }

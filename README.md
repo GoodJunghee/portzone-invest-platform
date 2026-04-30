@@ -127,6 +127,33 @@ http://localhost:3000
 | 탈퇴 회원 차단 | `getSession()` |
 | 에러 모니터링 | `src/lib/sentry.ts` |
 
+## QA + 콘텐츠 보강 완료 ✅
+
+### 신규 페이지 (8개)
+- `/about` — 회사 소개 (미션, 가치, KPI, CTA)
+- `/support` — 고객지원 (이메일·카톡, 운영시간, 셀프서비스)
+- `/how-it-works` — 5단계 이용 가이드
+- `/faq` — 자주 묻는 질문 (6 섹션 / 20+ 질문)
+- `not-found.tsx` — 커스텀 404
+- `error.tsx` — 글로벌 에러 (Sentry 연동)
+- `loading.tsx` — 글로벌 로딩 스피너
+
+### SEO 강화
+- `metadataBase` + 키워드 + OpenGraph + Twitter Card (layout)
+- `Organization` + `WebSite` JSON-LD (랜딩)
+- 모든 신규 페이지에 metadata.description
+
+### 콘텐츠 보강
+- 시드 보고서: 4개 → 10개 (8개 시장 모두 커버)
+- 시드 블로그: 4개 → 8개 (모든 카테고리 균형)
+- 랜딩 FAQ: 5개 → 8개 + "더 보기" 링크
+- Footer: 5컬럼 (서비스 / 고객지원 / 회사 / 면책)
+- MobileNav: 회사 소개 / 이용 가이드 추가
+
+### QA
+- TypeScript 타입체크 통과 (0 errors)
+- Prisma client 재생성 검증
+
 ## Batch 5 완료 ✅
 - [x] **블로그/뉴스 시스템** — `BlogPost` 모델, `/blog`, `/blog/[slug]`
   - 카테고리: 시장 분석 / 투자 전략 / 뉴스 / 가이드

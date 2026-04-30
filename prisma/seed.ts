@@ -123,6 +123,51 @@ async function main() {
       content:
         "<h3>매집 구간</h3><p>현재가 대비 -8~-12% 구간에서 분할 매수 권고.</p>",
     },
+    {
+      title: "[바이낸스 단타] BTC 변동성 확장 구간 진입",
+      category: "DAYTRADE",
+      market: "BINANCE",
+      summary:
+        "오픈인터레스트 급증 + 펀딩비 음수 전환. 단기 변동성 확장 시그널 발생.",
+      content:
+        "<h3>분석</h3><p>BTC 무기한 선물 OI 24시간 +18%, 펀딩비 -0.012%로 음수 전환. 숏 스퀴즈 가능성 확대.</p><h3>전략</h3><ul><li>10분봉 RSI 30 진입 시 분할 매수</li><li>레버리지 5x 이내 권고</li><li>손절 -2.5% 자동</li></ul>",
+    },
+    {
+      title: "[코스닥 스윙] 바이오 섹터 임상 일정 분석",
+      category: "SWING",
+      market: "KOSDAQ",
+      summary:
+        "1분기 임상 발표 예정 종목 5선. 진입 타이밍과 위험 요인 정리.",
+      content:
+        "<h3>주요 일정</h3><ul><li>1/15 — A사 항암제 임상 2상 톱라인</li><li>1/22 — B사 백신 임상 3상 중간 발표</li><li>2/05 — C사 희귀질환 신약 FDA 자문위원회</li></ul><h3>주의</h3><p>임상 결과 실패 시 갭 하락 -30% 이상 가능. 비중 5% 이내 권고.</p>",
+    },
+    {
+      title: "[NYSE 장타] 배당 귀족주 1년 포트폴리오",
+      category: "LONGTERM",
+      market: "NYSE",
+      summary:
+        "25년 이상 배당 증가 기록 종목 중 현재 매력 구간 5선.",
+      content:
+        "<h3>편입 종목 (예시)</h3><ol><li>JNJ (Johnson & Johnson) — 배당 60년</li><li>PG (Procter & Gamble) — 배당 67년</li><li>KO (Coca-Cola) — 배당 61년</li></ol><h3>리밸런싱 주기</h3><p>분기별 검토. 배당 삭감 발표 시 즉시 제외.</p>",
+    },
+    {
+      title: "[빗썸 스윙] 김치 프리미엄 정상화 구간",
+      category: "SWING",
+      market: "BITHUMB",
+      summary:
+        "김프 -2~+1% 박스권 진입. 글로벌 가격 추종 매매 전략.",
+      content:
+        "<h3>현황</h3><p>최근 30일 김프 평균 +0.3%, 표준편차 1.8%. 정상 박스권 안정 진입.</p><h3>전략</h3><p>김프 -2% 이하 진입, +2% 이상 청산.</p>",
+    },
+    {
+      title: "[바이비트 단타] 알트 무기한 자금 흐름 시그널",
+      category: "DAYTRADE",
+      market: "BYBIT",
+      summary:
+        "주요 알트 OI 변동 상위 5개 종목과 진입 가이드.",
+      content:
+        "<h3>OI 급증 종목</h3><ul><li>ETH 무기한: OI +12%, 펀딩 +0.018%</li><li>SOL 무기한: OI +21%, 펀딩 +0.025%</li></ul><h3>주의</h3><p>펀딩비 0.05% 초과 종목은 진입 보류.</p>",
+    },
   ];
 
   for (const r of reports) {
@@ -182,6 +227,58 @@ async function main() {
       tags: "연준, FOMC, 금리, 코스피",
       status: "PUBLISHED",
       publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      authorName: "PortZone 리서치",
+    },
+    {
+      slug: "rsi-macd-explained",
+      title: "RSI와 MACD — 단타 진입을 결정하는 두 가지 지표",
+      excerpt:
+        "차트 분석에 빠지지 않는 RSI와 MACD. 둘이 어떻게 다르고, 언제 어떻게 함께 써야 하는지 정리합니다.",
+      content:
+        "<h2>RSI (Relative Strength Index)</h2><p>일정 기간의 가격 상승·하락 비율을 0~100으로 표현. 70 이상 과매수, 30 이하 과매도.</p><h2>MACD (Moving Average Convergence Divergence)</h2><p>단기·장기 이동평균의 차이로 추세 전환을 감지. 골든크로스/데드크로스 시점 포착.</p><h2>함께 쓰는 법</h2><ol><li>RSI 30 이하 + MACD 상향 교차 → 강한 매수 시그널</li><li>RSI 70 이상 + MACD 하향 교차 → 강한 매도 시그널</li></ol><p>한 지표만 보면 속을 수 있습니다. 두 지표가 같은 방향을 가리킬 때만 진입.</p>",
+      category: "GUIDE",
+      tags: "RSI, MACD, 기술적분석, 단타",
+      status: "PUBLISHED",
+      publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      authorName: "PortZone 리서치",
+    },
+    {
+      slug: "long-term-investing-mindset",
+      title: "장타 투자자가 5년 후에도 살아남는 7가지 원칙",
+      excerpt:
+        "단기 변동성에 흔들리지 않는 장기 투자의 마음가짐. 시장이 무너질 때 버틸 수 있는 원칙들.",
+      content:
+        "<h2>1. 종목보다 비즈니스</h2><p>주가가 아니라 회사 자체를 봐야 합니다.</p><h2>2. 사이클을 이해</h2><p>모든 산업엔 호황과 침체가 있습니다.</p><h2>3. 분산 + 분할</h2><p>한 번에, 한 종목에 모두 넣지 마세요.</p><h2>4. 현금 보유</h2><p>기회가 왔을 때 행동하려면 실탄이 필요합니다.</p><h2>5. 재무제표 확인</h2><p>최소 분기에 한 번 ROE·부채비율·영업이익률 점검.</p><h2>6. 매도 기준 사전 정의</h2><p>'언제 팔지'를 정하지 않으면 절대 팔 수 없습니다.</p><h2>7. 시장과 거리두기</h2><p>매일 차트 보는 장타 투자자는 결국 단타를 합니다.</p>",
+      category: "STRATEGY",
+      tags: "장타, 가치투자, 마인드셋",
+      status: "PUBLISHED",
+      publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      authorName: "PortZone 리서치",
+    },
+    {
+      slug: "btc-cycle-2026",
+      title: "비트코인 4년 사이클 — 2026년은 어떤 해인가",
+      excerpt:
+        "반감기 이후 BTC의 역사적 흐름. 2026년 시장이 보여줄 가능성을 데이터로 짚어봅니다.",
+      content:
+        "<h2>BTC 4년 사이클</h2><p>반감기마다 가격 상승·조정·바닥·재상승의 순환이 반복.</p><h2>2024년 반감기 이후</h2><ul><li>2024 Q2: 반감기 발생</li><li>2024~2025: 상승 사이클</li><li>2025 후반~2026: 조정·바닥 형성 가능성</li></ul><h2>대응 전략</h2><p>분할 매수 비중 확대, 레버리지 축소, 알트 비중 조정.</p>",
+      category: "MARKET_ANALYSIS",
+      tags: "비트코인, BTC, 사이클, 코인",
+      status: "PUBLISHED",
+      publishedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+      authorName: "PortZone 리서치",
+    },
+    {
+      slug: "stop-loss-rules",
+      title: "손절 라인 설정의 정석 — 감정 없이 자르는 법",
+      excerpt:
+        "잃을 줄 알아야 잃지 않습니다. 손절 라인을 미리 정하고 지키는 7가지 규칙.",
+      content:
+        "<h2>손절이 어려운 이유</h2><p>'이번엔 다를 것'이라는 희망이 손실을 키웁니다.</p><h2>실전 손절 규칙</h2><ol><li>진입 전에 손절가 결정 (-2~3% 권장)</li><li>지정가 손절 자동 등록</li><li>손절 후 같은 종목 24시간 재진입 금지</li><li>월 손실 한도 -5% 도달 시 한 달간 거래 중단</li><li>크게 잃은 날은 차트도 보지 말 것</li></ol>",
+      category: "GUIDE",
+      tags: "손절, 리스크관리, 단타",
+      status: "PUBLISHED",
+      publishedAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
       authorName: "PortZone 리서치",
     },
   ];

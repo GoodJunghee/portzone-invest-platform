@@ -31,7 +31,7 @@ export function Header() {
           <Link href="/blog" className="hover:text-navy-900">
             블로그
           </Link>
-          <Link href="/#faq" className="hover:text-navy-900">
+          <Link href="/faq" className="hover:text-navy-900">
             {t.common.faq}
           </Link>
         </nav>

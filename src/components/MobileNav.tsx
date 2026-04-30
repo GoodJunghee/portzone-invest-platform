@@ -83,7 +83,13 @@ export function MobileNav({ locale, t }: { locale: Locale; t: Dictionary }) {
               <NavLink href="/blog" onClose={() => setOpen(false)}>
                 블로그
               </NavLink>
-              <NavLink href="/#faq" onClose={() => setOpen(false)}>
+              <NavLink href="/about" onClose={() => setOpen(false)}>
+                회사 소개
+              </NavLink>
+              <NavLink href="/how-it-works" onClose={() => setOpen(false)}>
+                이용 가이드
+              </NavLink>
+              <NavLink href="/faq" onClose={() => setOpen(false)}>
                 {t.common.faq}
               </NavLink>
             </nav>
