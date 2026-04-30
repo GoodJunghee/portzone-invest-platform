@@ -59,21 +59,21 @@ export default async function MyPage() {
         <div className="container-narrow">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-navy-900">마이페이지</h1>
-              <p className="mt-1 text-sm text-navy-600">
+              <h1 className="text-2xl font-bold text-navy-900 md:text-3xl">마이페이지</h1>
+              <p className="mt-1 text-sm text-navy-600 truncate">
                 {user.name}님 환영합니다 · {user.email}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Link
                 href="/mypage/account"
-                className="btn-secondary !py-2 !px-4"
+                className="btn-secondary !py-2 !px-3 text-xs"
               >
                 계정 설정
               </Link>
               <Link
                 href="/mypage/preferences"
-                className="btn-secondary !py-2 !px-4"
+                className="btn-secondary !py-2 !px-3 text-xs"
               >
                 알림 설정
               </Link>

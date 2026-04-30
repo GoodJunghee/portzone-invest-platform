@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ALL_MARKETS, CATEGORIES } from "@/lib/constants";
+import { getServerDictionary } from "@/lib/i18n-server";
 import { ArrowRight, Bell, FileText, ShieldCheck, Zap } from "lucide-react";
 
 export default function HomePage() {
+  const { t } = getServerDictionary();
   return (
     <>
       <Header />
@@ -15,60 +17,60 @@ export default function HomePage() {
             <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-gold-500 blur-3xl" />
             <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-mint-500 blur-3xl" />
           </div>
-          <div className="container-narrow relative py-20 md:py-28">
+          <div className="container-narrow relative py-16 md:py-28">
             <div className="max-w-3xl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-gold-500"></span>
-                국내·해외 주식 + 글로벌 코인 통합 추천
+                {t.hero.badge}
               </div>
-              <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-6xl">
-                흩어진 시장,
+              <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-6xl">
+                {t.hero.title1}
                 <br />
-                <span className="text-gold-500">한 번의 알림톡</span>으로.
+                <span className="text-gold-500">{t.hero.title2}</span>
+                {t.hero.title3}
               </h1>
-              <p className="mt-6 max-w-2xl text-lg text-navy-100 md:text-xl">
-                코스피·코스닥·나스닥·뉴욕증시·바이낸스·바이비트·업비트·빗썸까지.
-                단타·스윙·장타 추천 종목을 카카오 알림톡으로 받아보세요.
+              <p className="mt-6 max-w-2xl text-base text-navy-100 md:text-xl">
+                {t.hero.subtitle}
               </p>
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link href="/pricing" className="btn-gold">
-                  요금제 보러가기
+                  {t.hero.ctaPricing}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
                   href="/signup"
                   className="inline-flex items-center justify-center rounded-lg border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
                 >
-                  무료 가입
+                  {t.hero.ctaSignup}
                 </Link>
               </div>
 
               <div className="mt-12 grid grid-cols-2 gap-6 border-t border-white/10 pt-8 text-sm md:grid-cols-4">
-                <Stat label="지원 시장" value="8개" />
-                <Stat label="구독 카테고리" value="4종" />
-                <Stat label="알림 채널" value="카카오 알림톡" />
-                <Stat label="MVP 단계" value="베타 운영" />
+                <Stat label={t.hero.statMarkets} value={t.hero.statMarketsValue} />
+                <Stat label={t.hero.statCategories} value={t.hero.statCategoriesValue} />
+                <Stat label={t.hero.statChannel} value={t.hero.statChannelValue} />
+                <Stat label={t.hero.statStage} value={t.hero.statStageValue} />
               </div>
             </div>
           </div>
         </section>
 
         {/* Markets */}
-        <section className="bg-white py-20">
+        <section className="bg-white py-16 md:py-20">
           <div className="container-narrow">
             <SectionHeader
-              eyebrow="지원 시장"
-              title="국내외 주요 시장을 한 곳에서"
-              desc="원하는 시장만 골라서 구독하세요. 다중 선택 시 자동으로 할인이 적용됩니다."
+              eyebrow={t.marketSection.eyebrow}
+              title={t.marketSection.title}
+              desc={t.marketSection.desc}
             />
-            <div className="mt-12 grid gap-6 md:grid-cols-2">
+            <div className="mt-10 grid gap-6 md:mt-12 md:grid-cols-2">
               <MarketGroupCard
-                title="주식"
+                title={t.marketSection.stockTitle}
                 items={ALL_MARKETS.filter((m) => m.group === "STOCK")}
                 accent="navy"
               />
               <MarketGroupCard
-                title="코인"
+                title={t.marketSection.cryptoTitle}
                 items={ALL_MARKETS.filter((m) => m.group === "CRYPTO")}
                 accent="gold"
               />
@@ -77,14 +79,14 @@ export default function HomePage() {
         </section>
 
         {/* Categories */}
-        <section className="bg-navy-50 py-20">
+        <section className="bg-navy-50 py-16 md:py-20">
           <div className="container-narrow">
             <SectionHeader
-              eyebrow="구독 카테고리"
-              title="투자 스타일에 맞춰 선택"
-              desc="단타·스윙·장타, 또는 한 번에 다 받는 올인원."
+              eyebrow={t.categorySection.eyebrow}
+              title={t.categorySection.title}
+              desc={t.categorySection.desc}
             />
-            <div className="mt-12 grid gap-5 md:grid-cols-4">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 md:mt-12 md:grid-cols-4">
               {CATEGORIES.map((c) => (
                 <div
                   key={c.id}
@@ -104,7 +106,7 @@ export default function HomePage() {
             </div>
             <div className="mt-10 text-center">
               <Link href="/pricing" className="btn-primary">
-                내 요금 계산하기
+                {t.categorySection.cta}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
@@ -112,14 +114,14 @@ export default function HomePage() {
         </section>
 
         {/* Features */}
-        <section id="features" className="bg-white py-20">
+        <section id="features" className="bg-white py-16 md:py-20">
           <div className="container-narrow">
             <SectionHeader
-              eyebrow="핵심 기능"
-              title="포트존이 다른 이유"
-              desc="복잡한 차트 분석, 흩어진 정보, 늦은 타이밍 — 모두 해결합니다."
+              eyebrow={t.features.eyebrow}
+              title={t.features.title}
+              desc={t.features.desc}
             />
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 md:mt-12 md:grid-cols-3 md:gap-6">
               <FeatureCard
                 icon={<Bell className="h-6 w-6" />}
                 title="카카오 알림톡"
@@ -155,14 +157,14 @@ export default function HomePage() {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="bg-navy-50 py-20">
+        <section id="faq" className="bg-navy-50 py-16 md:py-20">
           <div className="container-narrow max-w-4xl">
             <SectionHeader
-              eyebrow="FAQ"
-              title="자주 묻는 질문"
-              desc="더 궁금한 점은 고객센터로 문의해주세요."
+              eyebrow={t.faq.eyebrow}
+              title={t.faq.title}
+              desc={t.faq.desc}
             />
-            <div className="mt-12 space-y-3">
+            <div className="mt-10 space-y-3 md:mt-12">
               <FaqItem
                 q="알림톡은 어떻게 받나요?"
                 a="가입 시 등록한 휴대폰 번호로 카카오 알림톡이 자동 발송됩니다. 카카오톡 친구추가 없이도 수신 가능합니다."
@@ -188,24 +190,22 @@ export default function HomePage() {
         </section>
 
         {/* Final CTA */}
-        <section className="bg-navy-900 py-20 text-white">
+        <section className="bg-navy-900 py-16 md:py-20 text-white">
           <div className="container-narrow text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              지금 바로 시작하세요.
+              {t.finalCta.title}
             </h2>
-            <p className="mt-4 text-navy-200">
-              가입은 무료입니다. 원하는 시장과 카테고리만 선택하고 알림톡을 받아보세요.
-            </p>
-            <div className="mt-8 flex justify-center gap-3">
+            <p className="mt-4 text-navy-200">{t.finalCta.subtitle}</p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link href="/signup" className="btn-gold">
-                무료 가입하기
+                {t.hero.ctaSignup}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
                 href="/pricing"
                 className="inline-flex items-center justify-center rounded-lg border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
               >
-                요금제 보기
+                {t.common.pricing}
               </Link>
             </div>
           </div>
@@ -241,10 +241,10 @@ function SectionHeader({
       <div className="text-sm font-semibold uppercase tracking-wider text-gold-600">
         {eyebrow}
       </div>
-      <h2 className="mt-3 text-3xl font-bold tracking-tight text-navy-900 md:text-4xl">
+      <h2 className="mt-3 text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl md:text-4xl">
         {title}
       </h2>
-      <p className="mt-4 text-base text-navy-600 md:text-lg">{desc}</p>
+      <p className="mt-4 text-sm text-navy-600 md:text-lg">{desc}</p>
     </div>
   );
 }
@@ -269,7 +269,7 @@ function MarketGroupCard({
               : "bg-gold-500 text-navy-900"
           }`}
         >
-          {items.length}개 시장
+          {items.length}
         </span>
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3">

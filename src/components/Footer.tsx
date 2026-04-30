@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { getServerDictionary } from "@/lib/i18n-server";
 
 export function Footer() {
+  const { t } = getServerDictionary();
   return (
     <footer className="border-t border-navy-100 bg-navy-50">
       <div className="container-narrow py-12">
@@ -16,50 +18,49 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-navy-900">서비스</h4>
+            <h4 className="text-sm font-semibold text-navy-900">{t.footer.services}</h4>
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
               <li>
                 <Link href="/pricing" className="hover:text-navy-900">
-                  요금제
+                  {t.common.pricing}
                 </Link>
               </li>
               <li>
                 <Link href="/reports" className="hover:text-navy-900">
-                  보고서
+                  {t.common.reports}
                 </Link>
               </li>
               <li>
                 <Link href="/#faq" className="hover:text-navy-900">
-                  FAQ
+                  {t.common.faq}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-navy-900">회사 / 정책</h4>
+            <h4 className="text-sm font-semibold text-navy-900">{t.footer.company}</h4>
             <ul className="mt-3 space-y-2 text-sm text-navy-600">
               <li>
                 <Link href="/legal/terms" className="hover:text-navy-900">
-                  이용약관
+                  {t.footer.terms}
                 </Link>
               </li>
               <li>
                 <Link href="/legal/privacy" className="hover:text-navy-900">
-                  개인정보처리방침
+                  {t.footer.privacy}
                 </Link>
               </li>
               <li>
                 <Link href="/legal/disclaimer" className="hover:text-navy-900">
-                  투자 유의사항
+                  {t.footer.disclaimer}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-navy-900">고지사항</h4>
+            <h4 className="text-sm font-semibold text-navy-900">{t.footer.notice}</h4>
             <p className="mt-3 text-xs leading-relaxed text-navy-500">
-              본 서비스에서 제공하는 종목 추천 및 보고서는 투자 판단의 참고용 정보이며,
-              최종 투자 결정은 사용자 본인의 책임입니다.
+              {t.footer.noticeBody}
             </p>
           </div>
         </div>

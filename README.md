@@ -127,6 +127,17 @@ http://localhost:3000
 | 탈퇴 회원 차단 | `getSession()` |
 | 에러 모니터링 | `src/lib/sentry.ts` |
 
+## Batch 4 완료 ✅
+- [x] **PWA** — manifest.json, SVG 아이콘, apple-touch-icon, theme-color 메타
+- [x] **다크모드** — Tailwind class 전략 + globals.css 토큰 오버라이드 + ThemeProvider/Toggle
+  - light / dark / system 3-mode 토글
+  - localStorage 영속, FOUC 방지 inline script
+  - `prefers-color-scheme` 시스템 감지
+- [x] **모바일 햄버거 메뉴** (Drawer + Backdrop, ESC 닫기, body scroll lock)
+- [x] **i18n lite** — 쿠키 기반 ko/en 토글 (`/api/lang`)
+- [x] **다국어 적용** — 랜딩 / 가격 / 헤더 / 푸터
+- [x] **반응형 보강** — 마이페이지 헤더 액션 wrap, 컨테이너 패딩 모바일 최적화
+
 ## Batch 3 완료 ✅
 - [x] 관리자 통계 차트 (Recharts) — MRR 추이 / 신규가입 / 알림 추이 / 카테고리·시장 분포
 - [x] 통계 lib 확장 — getMrrTrend, getSignupTrend, getNotificationTrend, getCategoryDistribution, getMarketDistribution
