@@ -11,6 +11,7 @@ import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { CouponList } from "@/components/CouponList";
 import { ReferralStats } from "@/components/ReferralStats";
+import { NotificationFeed } from "@/components/NotificationFeed";
 import { getReferralStats } from "@/lib/referral";
 
 export const metadata = { title: "마이페이지 — 포트존" };
@@ -30,7 +31,7 @@ export default async function MyPage() {
       prisma.notificationLog.findMany({
         where: { userId: session.userId },
         orderBy: { createdAt: "desc" },
-        take: 10,
+        take: 15,
       }),
       prisma.report.findMany({
         orderBy: { publishedAt: "desc" },
@@ -159,54 +160,16 @@ export default async function MyPage() {
             />
           </section>
 
-          {/* Notifications */}
+          {/* Notifications (infinite scroll) */}
           <section className="mt-10">
             <h2 className="mb-4 text-lg font-bold text-navy-900">최근 알림 내역</h2>
-            <div className="card">
-              {notifs.length === 0 ? (
-                <p className="text-sm text-navy-500">발송된 알림이 없습니다.</p>
-              ) : (
-                <ul className="divide-y divide-navy-100">
-                  {notifs.map((n) => (
-                    <li key={n.id} className="flex items-start gap-4 py-3">
-                      <div
-                        className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${
-                          n.priority === "HIGH" ? "bg-gold-500" : "bg-mint-500"
-                        }`}
-                      ></div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-2 text-sm font-semibold text-navy-900">
-                            {n.title}
-                            {n.priority === "HIGH" && (
-                              <span className="rounded-full bg-gold-500 px-1.5 py-0.5 text-[9px] font-bold text-navy-900">
-                                관심종목
-                              </span>
-                            )}
-                          </span>
-                          <span className="text-xs text-navy-500">
-                            {n.sentAt
-                              ? new Date(n.sentAt).toLocaleString("ko-KR")
-                              : "대기중"}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-xs text-navy-600 line-clamp-2">
-                          {n.message}
-                        </div>
-                        <div className="mt-1.5 text-[11px] text-navy-500">
-                          {n.category} · {n.market}
-                          {n.matchedSymbol && (
-                            <span className="ml-2 text-gold-600">
-                              ↳ {n.matchedSymbol}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <NotificationFeed
+              initial={notifs.map((n) => ({
+                ...n,
+                sentAt: n.sentAt?.toISOString() ?? null,
+                createdAt: n.createdAt.toISOString(),
+              }))}
+            />
           </section>
 
           {/* Reports */}

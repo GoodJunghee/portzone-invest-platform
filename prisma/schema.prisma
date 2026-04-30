@@ -214,6 +214,32 @@ model ReferralReward {
   @@unique([referrerId, referredId])
 }
 
+/// 보고서 템플릿 (관리자가 자주 쓰는 양식 저장)
+model ReportTemplate {
+  id          String   @id @default(cuid())
+  name        String   // 템플릿 이름 (예: "단타 KOSPI 일일 리포트")
+  category    String
+  market      String
+  titlePattern String  // 제목 패턴 (변수 치환 가능)
+  summary     String
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// 알림톡 템플릿 라이브러리
+model AlimtalkTemplate {
+  id          String   @id @default(cuid())
+  name        String   // 템플릿 이름 (예: "장 시작 전 단타 추천")
+  category    String
+  market      String?  // 시장 미지정 시 모든 시장 사용 가능
+  title       String   // 알림 제목 (변수 치환 가능)
+  body        String   // 본문 (변수 치환 가능 — {{symbol}}, {{name}}, {{buy}}, {{target}}, {{stop}})
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 /// 환불 요청
 model RefundRequest {
   id            String    @id @default(cuid())

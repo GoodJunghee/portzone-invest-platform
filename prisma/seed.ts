@@ -153,6 +153,43 @@ async function main() {
     ],
   });
 
+  // 데모 보고서 템플릿
+  await prisma.reportTemplate.deleteMany({});
+  await prisma.reportTemplate.create({
+    data: {
+      name: "단타 KOSPI 일일 시그널",
+      category: "DAYTRADE",
+      market: "KOSPI",
+      titlePattern: "[코스피 단타] {{date}} {{name}} 시그널",
+      summary: "{{name}} 단기 시그널 — 매수가 {{buy}}, 목표 {{target}}",
+      content:
+        "<h3>분석 요약</h3><p>{{name}}의 기술적 지표상 단기 진입 시그널 발생.</p><h3>거래 가이드</h3><ul><li>매수가: {{buy}}</li><li>목표가: {{target}}</li><li>손절가: {{stop}}</li></ul>",
+    },
+  });
+
+  // 데모 알림톡 템플릿
+  await prisma.alimtalkTemplate.deleteMany({});
+  await prisma.alimtalkTemplate.createMany({
+    data: [
+      {
+        name: "장 시작 전 단타 추천",
+        category: "DAYTRADE",
+        market: null,
+        title: "[포트존] 오늘의 단타 추천 ({{market}})",
+        body: "▶ {{name}} ({{symbol}})\n매수가 {{buy}}\n목표가 {{target}}\n손절가 {{stop}}\n사유: {{reason}}",
+        description: "장 개장 30분 전 발송용",
+      },
+      {
+        name: "긴급 시그널",
+        category: "DAYTRADE",
+        market: null,
+        title: "[포트존] 🚨 긴급 시그널 — {{name}}",
+        body: "{{name}}({{symbol}}) 긴급 진입 시그널 발생.\n\n현재가 {{price}}\n진입 권장가 {{buy}}\n목표가 {{target}}",
+        description: "주요 변동성 발생 시 즉시 발송",
+      },
+    ],
+  });
+
   console.log("Seed done.");
   console.log(`  Admin: ${adminEmail} / admin1234`);
   console.log(`  User:  ${demoEmail} / user1234`);

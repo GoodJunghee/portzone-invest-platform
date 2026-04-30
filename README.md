@@ -127,6 +127,16 @@ http://localhost:3000
 | 탈퇴 회원 차단 | `getSession()` |
 | 에러 모니터링 | `src/lib/sentry.ts` |
 
+## Batch 3 완료 ✅
+- [x] 관리자 통계 차트 (Recharts) — MRR 추이 / 신규가입 / 알림 추이 / 카테고리·시장 분포
+- [x] 통계 lib 확장 — getMrrTrend, getSignupTrend, getNotificationTrend, getCategoryDistribution, getMarketDistribution
+- [x] 보고서 검색·필터·페이지네이션 (`/api/reports?q=&category=&market=&page=`)
+- [x] 마이페이지 알림 무한 스크롤 (IntersectionObserver + cursor)
+- [x] 관리자 회원 검색·필터 (`/admin/members`) — 이름/이메일/전화 검색 + 권한/인증/구독/탈퇴 필터
+- [x] 보고서 템플릿 (저장 → 업로드 폼에서 1클릭 적용)
+- [x] 알림톡 템플릿 라이브러리 (변수 `{{symbol}}` 등 치환 + 라이브 미리보기)
+- [x] 관리자 통합 메뉴 (대시보드 / 회원관리 / 환불관리 / 템플릿)
+
 ## Batch 2 완료 ✅
 - [x] 무료 체험 7일 — 가입 시 자동 부여 (`grantTrialIfEligible`)
 - [x] 환불 일할 계산 — 7일 이내 100%, 이후 잔여일 환불
