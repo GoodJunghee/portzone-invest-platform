@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ALL_MARKETS, CATEGORIES, MARKETS, MarketId } from "@/lib/constants";
 import { BillingType, calculatePrice, formatKRW } from "@/lib/pricing";
@@ -31,6 +31,12 @@ export function PricingCalculator() {
     () => calculatePrice(category, markets, billing),
     [category, markets, billing]
   );
+
+  // 카테고리/시장/주기가 변경되면 적용된 쿠폰 미리보기 자동 해제 (가격이 바뀌면 재계산 필요)
+  useEffect(() => {
+    setCouponPreview(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, billing, markets.join(",")]);
 
   const toggleMarket = (id: MarketId) => {
     setMarkets((prev) =>

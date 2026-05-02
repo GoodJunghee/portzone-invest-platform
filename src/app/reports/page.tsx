@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ReportSearch } from "@/components/ReportSearch";
+import { getSession } from "@/lib/auth";
 
 export const metadata = { title: "보고서 — 포트존" };
 export const dynamic = "force-dynamic";
@@ -15,7 +15,8 @@ interface Props {
   };
 }
 
-export default function ReportsPage({ searchParams }: Props) {
+export default async function ReportsPage({ searchParams }: Props) {
+  const session = await getSession();
   return (
     <>
       <Header />
@@ -31,6 +32,7 @@ export default function ReportsPage({ searchParams }: Props) {
             initialCategory={searchParams.category ?? ""}
             initialMarket={searchParams.market ?? ""}
             initialPage={Number(searchParams.page ?? "1")}
+            isLoggedIn={!!session}
           />
         </div>
       </main>

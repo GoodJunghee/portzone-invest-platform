@@ -26,13 +26,24 @@ export function AlimtalkScheduleForm() {
 
     const fd = new FormData(e.currentTarget);
     const localDt = String(fd.get("scheduledAt") ?? "");
+    const parsedDate = new Date(localDt);
+    if (!localDt || isNaN(parsedDate.getTime())) {
+      setLoading(false);
+      setError("발송 시각이 올바르지 않습니다");
+      return;
+    }
+    if (parsedDate.getTime() < Date.now() - 60_000) {
+      setLoading(false);
+      setError("과거 시각은 예약할 수 없습니다");
+      return;
+    }
 
     const body = {
       category: String(fd.get("category") ?? "DAYTRADE"),
       market: String(fd.get("market") ?? "KOSPI"),
       title: String(fd.get("title") ?? ""),
       message: String(fd.get("message") ?? ""),
-      scheduledAt: new Date(localDt).toISOString(),
+      scheduledAt: parsedDate.toISOString(),
     };
 
     const res = await fetch("/api/admin/alimtalk/schedule", {

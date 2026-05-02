@@ -17,6 +17,10 @@ export async function GET(req: Request) {
   const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const secret = process.env.CRON_SECRET ?? "";
   const provided = bearer || key;
+  // 운영에선 CRON_SECRET 미설정 시 무조건 차단 (cron 라우트 공개 방지)
+  if (process.env.NODE_ENV === "production" && !secret) {
+    return NextResponse.json({ message: "cron secret not configured" }, { status: 503 });
+  }
   if (secret && provided !== secret) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
   }

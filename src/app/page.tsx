@@ -36,26 +36,40 @@ const websiteJsonLd = {
 
 export default async function HomePage() {
   const { t } = getServerDictionary();
+
+  // DB 미연결/스키마 미동기화 환경에서도 랜딩 자체는 동작하도록 안전 처리
   const [sampleReports, latestPosts] = await Promise.all([
-    prisma.report.findMany({
-      where: { isPublic: true, isSample: true },
-      orderBy: { publishedAt: "desc" },
-      take: 3,
-    }),
-    prisma.blogPost.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
-      take: 3,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        excerpt: true,
-        category: true,
-        coverImageUrl: true,
-        publishedAt: true,
-      },
-    }),
+    prisma.report
+      .findMany({
+        where: { isPublic: true, isSample: true },
+        orderBy: { publishedAt: "desc" },
+        take: 3,
+      })
+      .catch(() => []),
+    prisma.blogPost
+      .findMany({
+        where: { status: "PUBLISHED" },
+        orderBy: { publishedAt: "desc" },
+        take: 3,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          excerpt: true,
+          category: true,
+          coverImageUrl: true,
+          publishedAt: true,
+        },
+      })
+      .catch(() => [] as Array<{
+        id: string;
+        slug: string;
+        title: string;
+        excerpt: string;
+        category: string;
+        coverImageUrl: string | null;
+        publishedAt: Date | null;
+      }>),
   ]);
   return (
     <>

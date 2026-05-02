@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { ALL_MARKETS, CATEGORIES } from "@/lib/constants";
 
 const REPORT_CATEGORIES = CATEGORIES.filter((c) => c.id !== "ALLINONE");
@@ -15,6 +15,7 @@ interface Report {
   market: string;
   summary: string;
   fileUrl?: string | null;
+  isPublic?: boolean;
   publishedAt: string;
 }
 
@@ -32,11 +33,13 @@ export function ReportSearch({
   initialCategory,
   initialMarket,
   initialPage,
+  isLoggedIn,
 }: {
   initialQ: string;
   initialCategory: string;
   initialMarket: string;
   initialPage: number;
+  isLoggedIn: boolean;
 }) {
   const router = useRouter();
   const sp = useSearchParams();
@@ -155,7 +158,7 @@ export function ReportSearch({
           {pagination && (
             <span>
               총 <strong>{pagination.total.toLocaleString()}</strong>건
-              {q && <> · "{q}" 검색결과</>}
+              {q && <> · &ldquo;{q}&rdquo; 검색결과</>}
             </span>
           )}
           {loading && <span className="ml-2">로딩 중...</span>}
@@ -173,11 +176,12 @@ export function ReportSearch({
             {items.map((r) => {
               const cat = REPORT_CATEGORIES.find((c) => c.id === r.category);
               const mkt = ALL_MARKETS.find((m) => m.id === r.market);
+              const locked = !isLoggedIn && !r.isPublic;
               return (
                 <Link
                   key={r.id}
                   href={`/reports/${r.id}`}
-                  className="card transition hover:shadow-card-hover"
+                  className="card relative transition hover:shadow-card-hover"
                 >
                   <div className="flex items-center gap-2 text-xs">
                     <span className="rounded-full bg-navy-900 px-2 py-0.5 text-white">
@@ -189,6 +193,11 @@ export function ReportSearch({
                         PDF
                       </span>
                     )}
+                    {r.isPublic && (
+                      <span className="rounded-full bg-mint-500 px-2 py-0.5 text-white">
+                        무료
+                      </span>
+                    )}
                   </div>
                   <h3 className="mt-3 text-base font-bold text-navy-900 line-clamp-2">
                     {r.title}
@@ -196,8 +205,14 @@ export function ReportSearch({
                   <p className="mt-2 text-xs text-navy-600 line-clamp-3">
                     {r.summary}
                   </p>
-                  <div className="mt-3 text-[11px] text-navy-400">
-                    {new Date(r.publishedAt).toLocaleDateString("ko-KR")}
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-navy-400">
+                    <span>{new Date(r.publishedAt).toLocaleDateString("ko-KR")}</span>
+                    {locked && (
+                      <span className="inline-flex items-center gap-1 text-navy-500">
+                        <Lock className="h-3 w-3" />
+                        로그인 필요
+                      </span>
+                    )}
                   </div>
                 </Link>
               );
@@ -243,7 +258,6 @@ function PageNumbers({
   total: number;
   onPick: (p: number) => void;
 }) {
-  // 최대 7개 페이지 번호 표시 (...)
   const pages: (number | "...")[] = [];
   if (total <= 7) {
     for (let i = 1; i <= total; i++) pages.push(i);

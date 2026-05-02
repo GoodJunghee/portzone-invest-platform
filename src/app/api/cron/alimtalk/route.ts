@@ -18,6 +18,10 @@ export async function GET(req: Request) {
 
   // Vercel Cron은 Bearer 헤더, 외부 cron-job.org 등은 ?key= 쿼리 사용
   const provided = bearer || key;
+  // 운영에선 CRON_SECRET 미설정 시 무조건 차단 (cron 라우트 공개 방지)
+  if (process.env.NODE_ENV === "production" && !secret) {
+    return NextResponse.json({ message: "cron secret not configured" }, { status: 503 });
+  }
   if (secret && provided !== secret) {
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
   }

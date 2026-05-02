@@ -38,10 +38,9 @@ export default function SupportPage() {
             <ChannelCard
               icon={<MessageCircle className="h-5 w-5" />}
               title="카카오톡 채널"
-              desc="실시간 상담 (베타)"
+              desc="실시간 상담 (오픈 예정)"
               value="@portzone"
-              href="#"
-              note="평일 10:00 ~ 18:00"
+              note="채널 개설 후 안내 예정"
             />
             <ChannelCard
               icon={<AlertTriangle className="h-5 w-5" />}
@@ -155,12 +154,14 @@ function ChannelCard({
   title: string;
   desc: string;
   value: string;
-  href: string;
+  href?: string;
   note: string;
 }) {
+  const Wrapper: React.ElementType = href ? "a" : "div";
+  const props = href ? { href } : {};
   return (
-    <a
-      href={href}
+    <Wrapper
+      {...props}
       className="card transition hover:-translate-y-1 hover:shadow-card-hover"
     >
       <div className="grid h-10 w-10 place-items-center rounded-xl bg-navy-900 text-white">
@@ -172,7 +173,7 @@ function ChannelCard({
         {value}
       </div>
       <div className="mt-2 text-[11px] text-navy-500">{note}</div>
-    </a>
+    </Wrapper>
   );
 }
 

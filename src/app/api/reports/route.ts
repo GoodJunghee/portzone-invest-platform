@@ -53,6 +53,7 @@ export async function GET(req: Request) {
         market: true,
         summary: true,
         fileUrl: true,
+        isPublic: true,
         publishedAt: true,
       },
     }),

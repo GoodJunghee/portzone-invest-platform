@@ -41,10 +41,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "입력값 오류" }, { status: 400 });
     }
 
-    const baseSlug = parsed.data.slug
+    const rawSlug = parsed.data.slug
       ? slugify(parsed.data.slug)
       : slugify(parsed.data.title);
-    let slug = baseSlug || `post-${Date.now()}`;
+    // 한글이 모두 제거되어 빈 문자열이 되는 경우(예: 특수문자만 있는 제목) fallback
+    const baseSlug = rawSlug || `post-${Date.now()}`;
+    let slug = baseSlug;
 
     // 슬러그 중복 시 뒤에 카운터 붙이기
     for (let i = 1; i < 30; i++) {
