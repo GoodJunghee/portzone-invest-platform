@@ -2,13 +2,18 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PricingCalculator } from "@/components/PricingCalculator";
 import { getServerDictionary } from "@/lib/i18n-server";
+import { getSession } from "@/lib/auth";
 
 export const metadata = {
   title: "요금제 — 포트존",
 };
 
-export default function PricingPage() {
+export const dynamic = "force-dynamic";
+
+export default async function PricingPage() {
   const { t } = getServerDictionary();
+  const session = await getSession();
+
   return (
     <>
       <Header />
@@ -27,7 +32,7 @@ export default function PricingPage() {
           </div>
 
           <div className="mt-10 md:mt-12">
-            <PricingCalculator />
+            <PricingCalculator isLoggedIn={!!session} />
           </div>
 
           <div className="mx-auto mt-12 md:mt-16 max-w-3xl text-center text-xs text-navy-500">

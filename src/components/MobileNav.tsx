@@ -5,12 +5,22 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { LangToggle } from "./LangToggle";
+import { LogoutButton } from "./LogoutButton";
 import type { Dictionary, Locale } from "@/lib/i18n";
 
-export function MobileNav({ locale, t }: { locale: Locale; t: Dictionary }) {
+export function MobileNav({
+  locale,
+  t,
+  isLoggedIn,
+  isAdmin,
+}: {
+  locale: Locale;
+  t: Dictionary;
+  isLoggedIn: boolean;
+  isAdmin: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
-  // 메뉴 열린 상태에서 ESC 누르면 닫기
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -36,13 +46,11 @@ export function MobileNav({ locale, t }: { locale: Locale; t: Dictionary }) {
 
       {open && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 z-50 bg-navy-900/60 backdrop-blur-sm md:hidden"
             onClick={() => setOpen(false)}
           />
 
-          {/* Drawer */}
           <div
             className="fixed inset-y-0 right-0 z-50 w-72 bg-white shadow-card-hover md:hidden dark:bg-navy-900 dark:border-l dark:border-navy-800"
             role="dialog"
@@ -92,23 +100,44 @@ export function MobileNav({ locale, t }: { locale: Locale; t: Dictionary }) {
               <NavLink href="/faq" onClose={() => setOpen(false)}>
                 {t.common.faq}
               </NavLink>
+              {isLoggedIn && (
+                <>
+                  <div className="my-2 border-t border-navy-100" />
+                  {isAdmin && (
+                    <NavLink href="/admin" onClose={() => setOpen(false)}>
+                      관리자 대시보드
+                    </NavLink>
+                  )}
+                  <NavLink href="/mypage" onClose={() => setOpen(false)}>
+                    {t.common.mypage}
+                  </NavLink>
+                </>
+              )}
             </nav>
 
             <div className="border-t border-navy-100 p-4">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="btn-secondary mb-2 w-full !py-2.5 text-sm"
-              >
-                {t.common.login}
-              </Link>
-              <Link
-                href="/signup"
-                onClick={() => setOpen(false)}
-                className="btn-primary w-full !py-2.5 text-sm"
-              >
-                {t.common.signup}
-              </Link>
+              {isLoggedIn ? (
+                <LogoutButton
+                  className="btn-primary w-full !py-2.5 text-sm"
+                />
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="btn-secondary mb-2 w-full !py-2.5 text-sm"
+                  >
+                    {t.common.login}
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={() => setOpen(false)}
+                    className="btn-primary w-full !py-2.5 text-sm"
+                  >
+                    {t.common.signup}
+                  </Link>
+                </>
+              )}
             </div>
 
             <div className="flex items-center justify-between border-t border-navy-100 p-4">

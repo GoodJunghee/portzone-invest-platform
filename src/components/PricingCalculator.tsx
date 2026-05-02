@@ -6,6 +6,7 @@ import { ALL_MARKETS, CATEGORIES, MARKETS, MarketId } from "@/lib/constants";
 import { BillingType, calculatePrice, formatKRW } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { Check, Info } from "lucide-react";
+import { LoginModal } from "./LoginModal";
 
 type Category = (typeof CATEGORIES)[number]["id"];
 
@@ -17,7 +18,13 @@ interface CouponPreview {
   ok: boolean;
 }
 
-export function PricingCalculator() {
+type PendingAction = "SUBSCRIBE" | "COUPON" | null;
+
+export function PricingCalculator({
+  isLoggedIn = false,
+}: {
+  isLoggedIn?: boolean;
+}) {
   const router = useRouter();
   const [category, setCategory] = useState<Category>("DAYTRADE");
   const [billing, setBilling] = useState<BillingType>("MONTHLY");
@@ -26,6 +33,10 @@ export function PricingCalculator() {
   const [couponCode, setCouponCode] = useState("");
   const [couponPreview, setCouponPreview] = useState<CouponPreview | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [loginModalMessage, setLoginModalMessage] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [authed, setAuthed] = useState(isLoggedIn);
 
   const breakdown = useMemo(
     () => calculatePrice(category, markets, billing),
@@ -47,8 +58,18 @@ export function PricingCalculator() {
   const selectAll = () => setMarkets(ALL_MARKETS.map((m) => m.id) as MarketId[]);
   const clearAll = () => setMarkets([]);
 
+  function openLoginModal(action: PendingAction, message: string) {
+    setPendingAction(action);
+    setLoginModalMessage(message);
+    setLoginModalOpen(true);
+  }
+
   async function applyCoupon() {
     if (!couponCode.trim() || breakdown.finalPrice <= 0) return;
+    if (!authed) {
+      openLoginModal("COUPON", "쿠폰 사용을 위해 로그인이 필요합니다.");
+      return;
+    }
     setCouponLoading(true);
     const res = await fetch("/api/coupons/preview", {
       method: "POST",
@@ -61,7 +82,9 @@ export function PricingCalculator() {
     const data = await res.json();
     setCouponLoading(false);
     if (res.status === 401) {
-      router.push("/login");
+      // 세션 만료 등의 케이스 — 다시 로그인 모달
+      setAuthed(false);
+      openLoginModal("COUPON", "세션이 만료되었습니다. 다시 로그인해주세요.");
       return;
     }
     if (!res.ok) {
@@ -87,7 +110,7 @@ export function PricingCalculator() {
     setCouponPreview(null);
   }
 
-  async function onSubscribe() {
+  async function performSubscribe() {
     if (breakdown.unavailable || markets.length === 0) return;
     setSubmitting(true);
     const res = await fetch("/api/subscriptions", {
@@ -103,7 +126,8 @@ export function PricingCalculator() {
     });
     setSubmitting(false);
     if (res.status === 401) {
-      router.push("/signup");
+      setAuthed(false);
+      openLoginModal("SUBSCRIBE", "구독 신청을 위해 로그인이 필요합니다.");
       return;
     }
     if (!res.ok) {
@@ -112,6 +136,30 @@ export function PricingCalculator() {
       return;
     }
     router.push("/checkout/success");
+  }
+
+  function onSubscribe() {
+    if (breakdown.unavailable || markets.length === 0) return;
+    if (!authed) {
+      openLoginModal(
+        "SUBSCRIBE",
+        "구독 신청을 위해 로그인이 필요합니다. 로그인 후 자동으로 진행됩니다."
+      );
+      return;
+    }
+    void performSubscribe();
+  }
+
+  function onLoginSuccess() {
+    setAuthed(true);
+    // 모달 닫힌 후 대기 중이던 액션 자동 재실행
+    const action = pendingAction;
+    setPendingAction(null);
+    if (action === "SUBSCRIBE") {
+      void performSubscribe();
+    } else if (action === "COUPON") {
+      void applyCoupon();
+    }
   }
 
   const finalAfterCoupon = couponPreview?.ok
@@ -450,7 +498,9 @@ export function PricingCalculator() {
               ? "신청 중..."
               : markets.length === 0
               ? "시장을 선택하세요"
-              : "이 구성으로 구독 신청"}
+              : authed
+              ? "이 구성으로 구독 신청"
+              : "로그인 후 구독 신청"}
           </button>
 
           <div className="mt-4 text-[11px] leading-relaxed text-navy-500">
@@ -462,6 +512,16 @@ export function PricingCalculator() {
 
         <PriceTableSummary />
       </div>
+
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => {
+          setLoginModalOpen(false);
+          setPendingAction(null);
+        }}
+        onSuccess={onLoginSuccess}
+        message={loginModalMessage ?? undefined}
+      />
     </div>
   );
 }

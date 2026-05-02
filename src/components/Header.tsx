@@ -2,10 +2,16 @@ import Link from "next/link";
 import { ThemeToggle } from "./ThemeToggle";
 import { LangToggle } from "./LangToggle";
 import { MobileNav } from "./MobileNav";
+import { LogoutButton } from "./LogoutButton";
 import { getServerDictionary } from "@/lib/i18n-server";
+import { getSession } from "@/lib/auth";
 
-export function Header() {
+export async function Header() {
   const { t, locale } = getServerDictionary();
+  const session = await getSession();
+  const isLoggedIn = !!session;
+  const isAdmin = session?.role === "ADMIN";
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-navy-100 bg-white/90 backdrop-blur dark:bg-navy-900/80">
       <div className="container-narrow flex h-16 items-center justify-between gap-2">
@@ -42,14 +48,30 @@ export function Header() {
             <ThemeToggle />
           </div>
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/login" className="btn-secondary !py-2 !px-3 text-xs">
-              {t.common.login}
-            </Link>
-            <Link href="/signup" className="btn-primary !py-2 !px-3 text-xs">
-              {t.common.signup}
-            </Link>
+            {isLoggedIn ? (
+              <>
+                {isAdmin && (
+                  <Link href="/admin" className="btn-secondary !py-2 !px-3 text-xs">
+                    관리자
+                  </Link>
+                )}
+                <Link href="/mypage" className="btn-secondary !py-2 !px-3 text-xs">
+                  {t.common.mypage}
+                </Link>
+                <LogoutButton variant="primary" />
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="btn-secondary !py-2 !px-3 text-xs">
+                  {t.common.login}
+                </Link>
+                <Link href="/signup" className="btn-primary !py-2 !px-3 text-xs">
+                  {t.common.signup}
+                </Link>
+              </>
+            )}
           </div>
-          <MobileNav locale={locale} t={t} />
+          <MobileNav locale={locale} t={t} isLoggedIn={isLoggedIn} isAdmin={isAdmin} />
         </div>
       </div>
     </header>
